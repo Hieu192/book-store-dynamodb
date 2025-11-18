@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+    background-color: #F8F8F8;
+    font-family: "Quicksand", sans-serif;
+}
+
+label {
+    margin: 0;
+    color: #FFC107;
+}
+
+.add-cart-btn{
+    margin-left: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    border: 2px solid #1976D2; /* Thiết lập border với độ rộng 2px và màu xám nhạt */
+    border-radius: 5px; /* Border radius để bo tròn góc */
+    background-color: transparent; /* Để icon button trong suốt */
+    color: #1976D2; /* Màu chữ */
+    text-decoration: none; /* Loại bỏ gạch chân khi hover */
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Hiệu ứng transition khi hover */
+}
+
+.modal-icon{
+    transition: transform 0.3s ease-in-out
+}
+
+#sale{
+    border: 1px solid #e3e3e3;
+    border-radius: 0.5rem;
+    padding: 0 1.5rem 2rem;
+}
+
+.btn-apply {
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 10px;
+}
+
+.shipping-form{
+    background-color: white;
+}
+
+.shipping-form label{
+    color: #0F0F0F;
+}
+
+.form-inner label {
+    color: #0F0F0F;
+}
+
+.form-group label {
+    color: #0F0F0F;
+}
+
+.label-search{
+    color: #0F0F0F;
+}
+
+.category-name_text{
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1976D2;
+}
+
+button:focus {
+    outline: none !important;
+}
+
+.carousel .thumb.selected, .carousel .thumb:hover {
+    border: 1px solid #1976D2 !important;
+    border-radius: 10px;
+}
+
+.carousel .slide img {
+    width: 100%;
+    vertical-align: top;
+    border: #ebebf0 solid 1px !important;
+    border-radius: 10px;
+    height: 550px;
+}
+
+.carousel{
+
+}
+
+.dataTables_length .bs-select label{
+    color: #0F0F0F !important;
+}

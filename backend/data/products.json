@@ -1,0 +1,810 @@
+[{
+  "_id": {
+    "$oid": "662d088dc3eea4473ccf6924"
+  },
+  "price": 23000,
+  "ratings": 0,
+  "stock": 10,
+  "numOfReviews": 0,
+  "name": "Sách tin học 12",
+  "description": "Sách tin học dành cho học sinh lớp 12 ",
+  "category": "Sách học tập",
+  "seller": "hieu",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d088dc3eea4473ccf6925"
+      },
+      "public_id": "products/u0vmqk6ecnx710nsj1hw",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714227341/products/u0vmqk6ecnx710nsj1hw.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:15:41.710Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d08bbc3eea4473ccf6926"
+  },
+  "price": 26000,
+  "ratings": 0,
+  "stock": 20,
+  "numOfReviews": 0,
+  "name": "Sách tin học 11",
+  "description": "Sách tin học dành cho học sinh lớp 11",
+  "category": "Sách học tập",
+  "seller": "hieu",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d08bbc3eea4473ccf6927"
+      },
+      "public_id": "products/str8rvwumcbb0x5i4ypi",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714227387/products/str8rvwumcbb0x5i4ypi.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:16:27.987Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d08fbc3eea4473ccf6928"
+  },
+  "price": 21000,
+  "ratings": 0,
+  "stock": 15,
+  "numOfReviews": 0,
+  "name": "Sách tin học 10",
+  "description": "Sách tin học dành cho học sinh lớp 10",
+  "category": "Sách học tập",
+  "seller": "phuc",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d08fbc3eea4473ccf6929"
+      },
+      "public_id": "products/tetrfz0m3mh3kxzcktnk",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714227450/products/tetrfz0m3mh3kxzcktnk.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:17:31.074Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0970c3eea4473ccf692a"
+  },
+  "price": 35000,
+  "ratings": 0,
+  "stock": 40,
+  "numOfReviews": 0,
+  "name": "Sách tiếng anh 12",
+  "description": "Sách tiếng anh dành cho học sinh lớp 12 ",
+  "category": "Sách học tập",
+  "seller": "Hải",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0970c3eea4473ccf692b"
+      },
+      "public_id": "products/flhg4rpx36e0ie3jcfwk",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714227568/products/flhg4rpx36e0ie3jcfwk.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:19:28.713Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d09e2c3eea4473ccf692c"
+  },
+  "price": 120000,
+  "ratings": 0,
+  "stock": 70,
+  "numOfReviews": 0,
+  "name": "Harry Potter - tập 6",
+  "description": "Tiểu thuyết về phép thuật harrt potter tập 6 ",
+  "category": "Văn học - Tiểu thuyết",
+  "seller": "Hiếu",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d09e2c3eea4473ccf692d"
+      },
+      "public_id": "products/blpilxhshqkmqfv7wvw3",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714227681/products/blpilxhshqkmqfv7wvw3.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:21:22.305Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0a49c3eea4473ccf692e"
+  },
+  "price": 50000,
+  "ratings": 0,
+  "stock": 100,
+  "numOfReviews": 0,
+  "name": "Gia đình điệp viên",
+  "description": "manga kể về cuộc sống hài hước của gia đình điệp viên",
+  "category": "Truyện tranh",
+  "seller": "Toàn",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0a49c3eea4473ccf692f"
+      },
+      "public_id": "products/wseunfimiznakxkwj1z6",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714227784/products/wseunfimiznakxkwj1z6.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:23:05.313Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0a76c3eea4473ccf6930"
+  },
+  "price": 200000,
+  "ratings": 0,
+  "stock": 100,
+  "numOfReviews": 0,
+  "name": "Chú thuật hồi chiến",
+  "description": "Thầy trừ tà :)))",
+  "category": "Truyện tranh",
+  "seller": "Toàn",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0a76c3eea4473ccf6931"
+      },
+      "public_id": "products/oyoo1isdrszkchgn1qfz",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714227830/products/oyoo1isdrszkchgn1qfz.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:23:50.832Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0acdc3eea4473ccf6932"
+  },
+  "price": 1000000,
+  "ratings": 0,
+  "stock": 3,
+  "numOfReviews": 0,
+  "name": "Học viện đỏ đen",
+  "description": "truyện kể về đánh bạc đỏ đen",
+  "category": "Truyện tranh",
+  "seller": "Phúc",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0acdc3eea4473ccf6933"
+      },
+      "public_id": "products/bfxhpngkph8c2vrsru4a",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714227916/products/bfxhpngkph8c2vrsru4a.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:25:17.578Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0b00c3eea4473ccf6934"
+  },
+  "price": 2000000,
+  "ratings": 0,
+  "stock": 28,
+  "numOfReviews": 0,
+  "name": "Conan",
+  "description": "Kể về thần chết đi phá vụ án ",
+  "category": "Truyện tranh",
+  "seller": "Hiếu",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0b00c3eea4473ccf6935"
+      },
+      "public_id": "products/j28nnhfvhiv5muufx2kz",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714227968/products/j28nnhfvhiv5muufx2kz.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:26:08.939Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0b64c3eea4473ccf6936"
+  },
+  "price": 953000000,
+  "ratings": 0,
+  "stock": 14,
+  "numOfReviews": 0,
+  "name": "Chuyến du hành vào lòng đất",
+  "description": "Adventurers, những bạn yêu thích những cuộc phiêu lưu mãn nhãn và muốn đắm chìm trong những trang sách kinh điển, hãy sẵn sàng cho một hành trình đầy kịch tính và mê hoặc vào thế giới tưởng tượng của Jules Verne với “Chuyến Du Hành Vào Lòng Đất“.\r\n\r\nTruyện kể về Giáo sư Lidenbrock, một nhà khoa học táo bạo, cùng cậu cháu trai Axel và người dẫn đường gan dạ Hans. Họ bước vào một cuộc hành trình nguy hiểm và cam go, khi dấn thân sâu vào lòng đất, đi qua những mỏ quặng sâu thẳm và khám phá những kho báu đá quý và kim cương. Họ khám phá ra đại dương ngầm và mênh mông hang động với những đám mây và ánh sáng vĩnh cửu. Trên đường đi, họ gặp phải những loài cá tiền sử và cả những con thú biển khổng lồ. Một cơn bão mạnh đe dọa phá hủy chiếc thuyền và làm họ lạc vào một nghĩa địa chôn vùi…\r\n\r\nTrong “Chuyến Du Hành Vào Lòng Đất”, Jules Verne đưa chúng ta vào một thế giới vô cùng táo bạo và đầy màu sắc. Trí tưởng tượng siêu phàm của tác giả và những khung cảnh hùng vĩ mà ông mô tả sẽ khiến bạn ngẩn ngơ và sửng sốt. Đặc biệt, phiên bản chuyển ngữ này đi kèm với những tranh minh họa tuyệt đẹp, làm cho câu chuyện trở nên sống động, hấp dẫn hơn bao giờ hết.\r\n\r\n“Chuyến Du Hành Vào Lòng Đất” không chỉ là một cuốn sách phiêu lưu tuyệt vời, mà còn là một tác phẩm văn học kinh điển, mở ra một thế giới đầy bí ẩn và kỳ diệu. Bạn sẽ được trải nghiệm những cung đường chưa từng được khám phá, những pha hành động căng thẳng và cảm nhận sự hồi hộp từng trang sách.\r\n\r\nHãy mở trang đầu tiên của “Chuyến Du Hành Vào Lòng Đất” và để tâm hồn bạn bay xa vào một cuộc phiêu lưu đầy thách thức và sự kỳ diệu. Đọc tác phẩm này, bạn sẽ được đắm chìm trong trí tưởng tượng tuyệt vời và khám phá những điều kỳ bí dưới lòng đất.\r\n\r\nHãy sẵn sàng cho một cuộc hành trình không thể quên, từ những trang sách kinh điển của Jules Verne, và khám phá một thế giới tưởng tượng đầy mê hoặc và bất ngờ.",
+  "category": "Truyện tranh",
+  "seller": "Hải",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0b64c3eea4473ccf6937"
+      },
+      "public_id": "products/qpjilq3nwn3vr9a9wufo",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714228067/products/qpjilq3nwn3vr9a9wufo.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:27:48.571Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0c54c3eea4473ccf6938"
+  },
+  "price": 1420000,
+  "ratings": 0,
+  "stock": 42,
+  "numOfReviews": 0,
+  "name": "Cung đường tội ác",
+  "description": "Hãy sẵn sàng cho một cuộc hành trình căng thẳng và đầy kịch tính trong Cung Đường Tội Ác, tác phẩm trinh thám đầy mê hoặc của tác giả tài ba Robert Dugoni. Cuốn sách này sẽ làm say đắm những độc giả yêu thích thể loại truyện trinh thám và giữ chặt lấy sự chú ý của bạn từ trang đầu tiên đến trang cuối cùng.\r\n\r\nTracy Crosswhite, nhân viên điều tra tài năng, trở về thị trấn Cedar Grove sau bảy năm nhằm đưa kẻ đã giết em gái cô ra trước pháp luật. Nhưng lần này, Tracy chỉ hy vọng tìm được chút thời gian để nghỉ ngơi và xây dựng một cuộc sống mới cho chính mình, cho chồng Dan và cô con gái mới chào đời. Tuy nhiên, những ký ức đen tối nhanh chóng trỗi dậy và cho thấy rằng quá khứ bi thảm không bao giờ ngủ yên.\r\n\r\nTrong khi Dan trở thành luật sư đại diện cho một thương nhân địa phương đang đối mặt với sự đe dọa từ cuộc sống kinh doanh trong thị trấn, Tracy nhận được lời đề nghị từ một người bạn và cũng là đồng nghiệp xưa, yêu cầu cô giải quyết một vụ án mới: vợ của một sĩ quan cảnh sát và cũng là một phóng viên bị sát hại dã man trong quá trình điều tra một vụ án xảy ra hai mươi năm trước đó. Khi hai vụ án của Tracy và Dan ban đầu dường như không có liên quan, nhưng dần dần chúng hé lộ một mối liên hệ không ngờ, và con đường Tracy chọn để đi trở nên nguy hiểm vô cùng. Nó đẩy mạnh những ký ức đen tối của chính cô và tiết lộ một âm mưu kéo dài hàng thập kỷ tại Cedar Grove. Nhưng lần này, liệu Tracy có sẵn sàng đánh đổi cuộc sống của chính mình và những người thân yêu để tìm ra sự thật với mọi giá và xua tan những bóng đen đã bao phủ thị trấn quê hương suốt hàng năm qua?\r\n\r\nCung Đường Tội Ác sẽ khiến bạn không thể rời mắt khỏi trang sách. Với những bí mật chôn giấu sâu trong quá khứ, những mưu đồ đen tối và những màn đối đầu cam go, cuốn sách này sẽ đảo lộn cuộc sống của Tracy và đưa bạn vào một thế giới tràn đầy nguy hiểm và đau khổ. Bạn sẽ không thể ngừng suy nghĩ và tìm hiểu, cùng với Tracy, về sự thật đen tối đằng sau những cái chết đầy bí ẩn trong một thị trấn nhỏ bé.",
+  "category": "Văn học - Tiểu thuyết",
+  "seller": "Toàn",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0c54c3eea4473ccf6939"
+      },
+      "public_id": "products/zmsdwo9xehkb4egxgogo",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714228307/products/zmsdwo9xehkb4egxgogo.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:31:48.366Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0ca1c3eea4473ccf693a"
+  },
+  "price": 0,
+  "ratings": 0,
+  "stock": 123,
+  "numOfReviews": 0,
+  "name": "Đánh bại lạm phát",
+  "description": "Lạm phát không thể kiểm soát có phải một điều bình thường mới? Đây là câu hỏi mà các doanh nghiệp hiện đại phải đối mặt. Trên thực tế, lạm phát đang trở lại và tiếp tục là một thách thức lớn đối với thế giới kinh doanh. Với những tác động mạnh mẽ tới các công ty Việt Nam, đây là thời điểm quan trọng để thay đổi cách nhìn về lạm phát và áp dụng những chiến lược linh hoạt, cụ thể và hiệu quả. Cuốn sách “Đánh bại lạm phát” của Hermann Simon và Andreas Stoffers là nguồn tư duy sáng tạo về cách đối phó và quản lý lạm phát, nhằm đảm bảo sự tồn tại của doanh nghiệp.\r\n\r\nVới cái nhìn đa chiều, cuốn sách khám phá lạm phát từ nhiều góc độ khác nhau và đề xuất các biện pháp và chiến lược cụ thể. Nó không chỉ tập trung vào việc loại bỏ lạm phát mà còn đề cao cách đối phó với nó trong việc giảm thiểu tổn thất. Các tác giả đưa ra những giải pháp thông qua quản lý giá cả, hoạt động bán hàng, tài chính, mua hàng, quản lý chi phí, số hóa và đổi mới. Bên cạnh đó, cuốn sách còn khám phá sự thay đổi văn hóa doanh nghiệp và cung cấp những cơ hội để đánh bại lạm phát và bảo vệ sự tồn tại của công ty.\r\n\r\nBóng ma lạm phát và thách thức cho doanh nghiệp Việt Nam\r\n\r\nLạm phát đang âm thầm rình rập cả ở Việt Nam và trên toàn cầu. Đối với các nhà quản lý kinh doanh tại Việt Nam, việc hòa nhập và đương đầu với lạm phát trở thành một nhiệm vụ cấp bách để giảm thiểu rủi ro cho doanh nghiệp, người tiêu dùng và các hoạt động kinh doanh tổng thể.\r\n\r\nLạm phát không chỉ ảnh hưởng đến giá cả, mà còn tác động đến mọi khía cạnh của công ty. Lực lượng bán hàng gặp nhiều khó khăn khi phải đối mặt với việc tăng giá thường xuyên và lớn hơn đối với khách hàng. Đồng hành cùng Simon-Kucher & Partners – một tổ chức tư vấn giá hàng đầu thế giới, các tác giả của cuốn sách cung cấp những phân tích chi tiết và các giải pháp thực tế nhằm giảm thiểu tình trạng lạm phát trong các tổ chức doanh nghiệp của Việt Nam.\r\n\r\nCuốn sách không chỉ tập trung vào quản lý và chính sách, mà còn cung cấp những lời khuyên quan trọng để các nhà lãnh đạo xây dựng chính sách và chiến lược kinh tế phù hợp. Những nguyên tắc và kỹ thuật được đề xuất trong cuốn sách có thể giúp các doanh nghiệp ứng phó với lạm phát một cách linh hoạt và hiệu quả.\r\n\r\nChiến lược quản lý kinh tế để đánh bại lạm phát\r\n\r\nCuốn sách “Đánh bại lạm phát” đề xuất một số chiến lược quản lý kinh tế để giảm thiểu tác động của lạm phát đối với doanh nghiệp. Dưới đây là một số điểm nhấn quan trọng:\r\n\r\nQuản lý giá cả: Các doanh nghiệp cần xem xét việc điều chỉnh giá cả để phản ứng với lạm phát. Điều này có thể bao gồm tăng giá sản phẩm hoặc tìm cách giảm chi phí sản xuất để duy trì mức giá ổn định.\r\n\r\nQuản lý hoạt động bán hàng: Các doanh nghiệp cần tìm cách tăng doanh số bằng cách tìm kiếm khách hàng mới, tăng cường quảng cáo và khuyến mãi, và cải thiện trải nghiệm mua hàng để duy trì lợi thế cạnh tranh.\r\n\r\nQuản lý tài chính: Việc quản lý tài chính cẩn thận là cực kỳ quan trọng trong thời gian lạm phát. Các doanh nghiệp cần duy trì sự cân đối tài chính và tăng cường quản lý rủi ro tài chính để đảm bảo sự ổn định trong môi trường khó khăn.\r\n\r\nQuản lý mua hàng: Tối ưu hóa quá trình mua hàng có thể giúp giảm thiểu tác động của lạm phát đối với nguồn cung. Các doanh nghiệp có thể xem xét đa dạng hóa nguồn cung, đàm phán hợp đồng dài hạn và tăng cường quản lý rủi ro liên quan đến giá cả và nguồn cung.\r\n\r\nQuản lý chi phí: Tìm cách tiết kiệm chi phí và tăng cường hiệu suất là một phần quan trọng trong việc ứng phó với lạm phát. Các doanh nghiệp có thể xem xét cải tiến quy trình làm việc, tăng cường hiệu suất lao động và tìm kiếm các nguồn cung ứng giá rẻ hơn.\r\n\r\nSố hóa và đổi mới: Số hóa và đổi mới có thể giúp tăng cường hiệu quả và giảm thiểu tác động của lạm phát. Sử dụng công nghệ và giải pháp số giúp tối ưu hóa quy trình kinh doanh và tăng cường sự linh hoạt trong việc thích ứng với biến đổi thị trường.\r\n\r\nThay đổi văn hóa doanh nghiệp: Thay đổi văn hóa doanh nghiệp để thúc đẩy sự nhạy bén và sẵn sàng thích ứng là một yếu tố quan trọng trong việc đánh bại lạm phát. Các doanh nghiệp cần khuyến khích tư duy sáng tạo, khám phá cách làm mới và tạo ra môi trường linh hoạt để thích",
+  "category": "Kinh tế",
+  "seller": "Hải",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0ca1c3eea4473ccf693b"
+      },
+      "public_id": "products/cq5ralx2d9jaatsmvwxj",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714228384/products/cq5ralx2d9jaatsmvwxj.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:33:05.244Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0ce7c3eea4473ccf693c"
+  },
+  "price": 15550000,
+  "ratings": 0,
+  "stock": 2000,
+  "numOfReviews": 0,
+  "name": "Đất rừng phương nam",
+  "description": "Cuốn sách “Đất Rừng Phương Nam (Bản Điện Ảnh)” do tác giả Đoàn Giỏi sáng tác và NXB Kim Đồng phát hành là một tác phẩm xuất sắc, đầy cảm xúc, khắc họa hình ảnh về con người và thiên nhiên Nam bộ một cách tinh tế và sâu sắc. Với mỗi trang sách được viết…",
+  "category": "Văn học - Tiểu thuyết",
+  "seller": "Hiếu",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0ce7c3eea4473ccf693d"
+      },
+      "public_id": "products/uy4xpmt5plnfnc4levl6",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714228454/products/uy4xpmt5plnfnc4levl6.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:34:15.293Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0d41c3eea4473ccf693e"
+  },
+  "price": 1000,
+  "ratings": 0,
+  "stock": 1222,
+  "numOfReviews": 0,
+  "name": "Hãy nghe lời thần linh",
+  "description": "Đây là 1 cuốn sách kể về hành trình dũng cảm của nhân vật TMy trong lâu đài …",
+  "category": "Văn học - Tiểu thuyết",
+  "seller": "Phúc",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0d41c3eea4473ccf693f"
+      },
+      "public_id": "products/idux9qlvelkssnqlt88z",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714228544/products/idux9qlvelkssnqlt88z.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:35:45.230Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0d82c3eea4473ccf6940"
+  },
+  "price": 500000,
+  "ratings": 0,
+  "stock": 120,
+  "numOfReviews": 0,
+  "name": "Thần thoai bắc âu",
+  "description": "Sau những thế giới hư cấu tuyệt vời trong những tác phẩm trước đó, Neil Gaiman, một trong những cây bút hấp dẫn của thể loại truyện giả tưởng, đã trở lại với một thế giới nguyên sơ và nguyên bản hơn với các vị thần Bắc Âu, cùng Odin, Thor và Loki, Cây tần bì…",
+  "category": "Văn học - Tiểu thuyết",
+  "seller": "Hiếu",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0d82c3eea4473ccf6941"
+      },
+      "public_id": "products/wmwdnt5nqyzgjcymn6gz",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714228609/products/wmwdnt5nqyzgjcymn6gz.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:36:50.523Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0ddfc3eea4473ccf6942"
+  },
+  "price": 700000,
+  "ratings": 0,
+  "stock": 140,
+  "numOfReviews": 0,
+  "name": "YourName",
+  "description": "chuyến du hành thời gian - tác phẩm của phù thủy nỗi buồn",
+  "category": "Truyện tranh",
+  "seller": "Phong",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0ddfc3eea4473ccf6943"
+      },
+      "public_id": "products/ifqjdsifqj5s0vgddaoy",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714228702/products/ifqjdsifqj5s0vgddaoy.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:38:23.548Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0e1fc3eea4473ccf6944"
+  },
+  "price": 900000,
+  "ratings": 0,
+  "stock": 84,
+  "numOfReviews": 0,
+  "name": "Học viện anh hùng",
+  "description": "Truyện về cuộc hành trình thành anh hùng của cậu bé",
+  "category": "Truyện tranh",
+  "seller": "Phong",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0e1fc3eea4473ccf6945"
+      },
+      "public_id": "products/dmpvpwb0syxczdfr9p5v",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714228767/products/dmpvpwb0syxczdfr9p5v.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:39:27.876Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0e75c3eea4473ccf6946"
+  },
+  "price": 2000000,
+  "ratings": 0,
+  "stock": 45,
+  "numOfReviews": 0,
+  "name": "Khởi nghiệp không đợi tuổi",
+  "description": "Bạn luôn mơ ước khởi nghiệp, nhưng luôn có một lời nhắc nhở từ người khác rằng bạn cần chờ đến một thời điểm lý tưởng? Cuốn sách “Khởi Nghiệp Không Đợi Tuổi” của Swish Goswami và Quinn Underwood là hướng dẫn tuyệt vời cho bạn, những độc giả quan tâm đến thể loại sách kinh…",
+  "category": "Kinh tế",
+  "seller": "Lộc",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0e75c3eea4473ccf6947"
+      },
+      "public_id": "products/kyuuz98a3bfnvqvg5ui5",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714228852/products/kyuuz98a3bfnvqvg5ui5.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:40:53.014Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0ebfc3eea4473ccf6948"
+  },
+  "price": 250000,
+  "ratings": 0,
+  "stock": 36,
+  "numOfReviews": 0,
+  "name": "Marketing",
+  "description": "Bạn là một người quan tâm đến lĩnh vực kinh tế và muốn hiểu rõ hơn về cách tiếp thị hiệu quả trong thời đại số? Hãy sẵn sàng khám phá sức mạnh của cộng đồng trong tiếp thị với cuốn sách “Marketing Hướng Nội” của tác giả Mark W. Schaefer, do nhà xuất bản…",
+  "category": "Kinh tế",
+  "seller": "Lộc",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0ebfc3eea4473ccf6949"
+      },
+      "public_id": "products/jskmzck13xdkaavmavpx",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714228927/products/jskmzck13xdkaavmavpx.png"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:42:07.816Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0f12c3eea4473ccf694a"
+  },
+  "price": 340000,
+  "ratings": 0,
+  "stock": 65,
+  "numOfReviews": 0,
+  "name": "Mất tích",
+  "description": "Bước vào thế giới đầy kịch tính và u ám của tác giả Robert Dugoni trong cuốn sách Mất Tích, một tác phẩm trinh thám căng thẳng đầy hấp dẫn. Với những mưu đồ đen tối và những bí mật lớn được che giấu, cuốn sách này sẽ cướp đi hơi thở của bạn từ trang…",
+  "category": "Văn học - Tiểu thuyết",
+  "seller": "Phong",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0f12c3eea4473ccf694b"
+      },
+      "public_id": "products/vrn18thc11ttyt0xhx6t",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714229009/products/vrn18thc11ttyt0xhx6t.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:43:30.073Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0f5ec3eea4473ccf694c"
+  },
+  "price": 430000,
+  "ratings": 0,
+  "stock": 10,
+  "numOfReviews": 0,
+  "name": "Đắc nhân tâm",
+  "description": "Đắc nhân tâm",
+  "category": "Sách tự lực",
+  "seller": "Phong",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0f5ec3eea4473ccf694d"
+      },
+      "public_id": "products/s97yzaf4bomuztnml2iz",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714229085/products/s97yzaf4bomuztnml2iz.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:44:46.066Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d0fbbc3eea4473ccf694e"
+  },
+  "price": 152,
+  "ratings": 0,
+  "stock": 49,
+  "numOfReviews": 0,
+  "name": "Vua hải tặc",
+  "description": "cao su - thần mặt trời với sức mạnh tình bạn ",
+  "category": "Truyện tranh",
+  "seller": "Hiếu",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d0fbbc3eea4473ccf694f"
+      },
+      "public_id": "products/oyifarz15gw97rtqoukt",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714229179/products/oyifarz15gw97rtqoukt.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:46:19.889Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d109dc3eea4473ccf6950"
+  },
+  "price": 40000000,
+  "ratings": 0,
+  "stock": 123456,
+  "numOfReviews": 0,
+  "name": "Búp bê ký ức",
+  "description": "violet là robot đang tìm kiếm tình yêu và hạnh phúc là gì bằng cách hiểu mọi người qua viết thư từ",
+  "category": "Truyện tranh",
+  "seller": "Hiếu",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d109dc3eea4473ccf6951"
+      },
+      "public_id": "products/vn89jid8o2ytjdcqms3p",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714229405/products/vn89jid8o2ytjdcqms3p.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:50:05.598Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d126dc3eea4473ccf6952"
+  },
+  "price": 233,
+  "ratings": 0,
+  "stock": 7,
+  "numOfReviews": 0,
+  "name": "Ứng Dụng Phân Tích Báo Cáo Tài Chính Và Định Giá Doanh Nghiệp Trong Thực Tiễn",
+  "description": "Cuốn sách được chia thành ba phần chính, mỗi phần đề cập đến một khía cạnh quan trọng trong phân tích tài chính và định giá doanh nghiệp. PHẦN 1: PHÂN TÍCH BÁO CÁO TÀI CHÍNH Trong phần này, tác giả giới thiệu về tầm nhìn, chiến lược, mô hình kinh doanh và quản trị,…",
+  "category": "Kinh tế",
+  "seller": "Phúc",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d126dc3eea4473ccf6953"
+      },
+      "public_id": "products/aljw24fjmxvqbhcomagr",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714229868/products/aljw24fjmxvqbhcomagr.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T14:57:49.564Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d1332c3eea4473ccf6954"
+  },
+  "price": 280000,
+  "ratings": 0,
+  "stock": 63,
+  "numOfReviews": 0,
+  "name": "bí mật của may mắn",
+  "description": "cách để may mắn trong cuộc sống",
+  "category": "Sách tự lực",
+  "seller": "Phúc",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d1332c3eea4473ccf6955"
+      },
+      "public_id": "products/cwu0xuwkvqkf7ncciipw",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714230065/products/cwu0xuwkvqkf7ncciipw.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T15:01:06.125Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d1413c3eea4473ccf6956"
+  },
+  "price": 241000,
+  "ratings": 0,
+  "stock": 12,
+  "numOfReviews": 0,
+  "name": "Quản Lý Chuỗi Cung Ứng Thực Phẩm Và Logistics",
+  "description": "Cuốn sách “Quản Lý Chuỗi Cung Ứng Thực Phẩm Và Logistics” là một hành trình thú vị, mang đến cho bạn cái nhìn toàn diện về hành trình của thực phẩm từ nguồn gốc của nó cho đến khi đặt trên bàn ăn của chúng ta. Bạn sẽ khám phá về thiết kế, quản trị,…",
+  "category": "Kinh tế",
+  "seller": "Hải",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d1413c3eea4473ccf6957"
+      },
+      "public_id": "products/kj2lnfe82om5bnut0kyi",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714230291/products/kj2lnfe82om5bnut0kyi.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T15:04:51.963Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "662d14b9c3eea4473ccf6958"
+  },
+  "price": 12,
+  "ratings": 0,
+  "stock": 2,
+  "numOfReviews": 0,
+  "name": "Romeo Và Juliet",
+  "description": "“Ngày xưa, ở thành Verona tươi đẹp, có hai nhà thuộc dòng thế phiệt trâm anh. Mối thù xưa bỗng gây cảnh bất bình, máu lương thiện, tay người lành nhuộm đỏ. Số phận éo le, thâm thù hai họ lại khéo xui sinh hạ đôi tình nhân. Mối tình ai thê thảm muôn phần,…",
+  "category": "Văn học - Tiểu thuyết",
+  "seller": "Hải",
+  "images": [
+    {
+      "_id": {
+        "$oid": "662d14b9c3eea4473ccf6959"
+      },
+      "public_id": "products/izwh13fzgxpeb6kkkfok",
+      "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1714230457/products/izwh13fzgxpeb6kkkfok.jpg"
+    }
+  ],
+  "user": {
+    "$oid": "662cf6576d0ebc4848384118"
+  },
+  "reviews": [],
+  "createdAt": {
+    "$date": "2024-04-27T15:07:37.945Z"
+  },
+  "__v": 0
+}]

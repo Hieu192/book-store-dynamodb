@@ -1,0 +1,32 @@
+[{
+    "user": "21521300@gm.uit.edu.vn",
+    "shippingInfo": {
+        "address":"le van viet",
+        "city": "ho chi minh",
+        "phoneNo":"0919124589",
+        "postalCode":"70000",
+        "country":"viet nam"
+    },
+    "orderItems": [
+        {
+            "name": "sách",
+            "quantity": 2,
+            "image": "https://res.cloudinary.com/dutjyu71n/image/upload/v1713682519/avatars/edb46oummrl1zphhddme.jpg",
+            "price": 50000 
+        }
+    ],
+    "paymentInfo": {
+        "id": "0123",
+        "status": "paid"
+    },
+    "paidAt": "2024-04-21T09:29:45.405+00:00",
+
+    "itemsPrice": 10,
+    "taxPrice": 0,
+    " shippingPrice": 10,
+    "totalPrice": 5,
+    "orderStatus":"paid",
+    " deliveredAt":"2024-04-21T09:29:45.405+00:00",
+    "createdAt":"2024-04-21T09:29:45.405+00:00"
+
+}]

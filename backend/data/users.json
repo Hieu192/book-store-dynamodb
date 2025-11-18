@@ -1,0 +1,85 @@
+[{
+  "_id": {
+    "$oid": "6624b80dd2f4d82020d93957"
+  },
+  "role": "user",
+  "name": "phuoc",
+  "email": "phuc@gmail.com",
+  "password": "$2a$10$kKlXWovfeljCaqacMNQpJeL5KEG7K0EtPe33gwawzq/7rwzrysJ/i",
+  "avatar": {
+    "public_id": "avatars/v8kqarlm1bvheyq0uwio",
+    "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1713682446/avatars/v8kqarlm1bvheyq0uwio.jpg"
+  },
+  "createdAt": {
+    "$date": "2024-04-21T06:54:05.598Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6624b856d2f4d82020d93958"
+  },
+  "role": "user",
+  "name": "phuoc",
+  "email": "phuc12121@gmail.com",
+  "password": "$2a$10$tp.KzUBvJvZYu5USq3E8keiNkxEIgi3/4P5AbeO8ZywpC9c9Pn2uW",
+  "avatar": {
+    "public_id": "avatars/edb46oummrl1zphhddme",
+    "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1713682519/avatars/edb46oummrl1zphhddme.jpg"
+  },
+  "createdAt": {
+    "$date": "2024-04-21T06:55:18.218Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6624ba70d2f4d82020d9395a"
+  },
+  "role": "user",
+  "name": "phuccao",
+  "email": "ductruongcao1611@gmail.com",
+  "password": "$2a$10$2eH4Dq6fwDzCwO3tLSTpB.Rgi7TMrMdvk1Hw9SrN1Q7SZBkXd6fGC",
+  "avatar": {
+    "public_id": "avatars/naorllvqh2lg0vdl4ito",
+    "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1713683057/avatars/naorllvqh2lg0vdl4ito.jpg"
+  },
+  "createdAt": {
+    "$date": "2024-04-21T07:04:16.180Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6624dc890961a15c38db7ac1"
+  },
+  "role": "user",
+  "name": "21521300",
+  "email": "21521300@gm.uit.edu.vn",
+  "password": "$2a$10$4MQt9qOrDbN5qIJycX1/juTOQRxw5M2yGs3JBovmEjg4CWv0bWfhK",
+  "avatar": {
+    "public_id": "avatars/kqg5pjor2aticvej7ieo",
+    "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1713691785/avatars/kqg5pjor2aticvej7ieo.jpg"
+  },
+  "createdAt": {
+    "$date": "2024-04-21T09:29:45.405Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66253e1c06ebd9e7c00eab38"
+  },
+  "role": "admin",
+  "name": "phuccao",
+  "email": "phuctruong.310103@gmail.com",
+  "password": "$2a$10$2eH4Dq6fwDzCwO3tLSTpB.Rgi7TMrMdvk1Hw9SrN1Q7SZBkXd6fGC",
+  "avatar": {
+    "public_id": "avatars/naorllvqh2lg0vdl4ito",
+    "url": "https://res.cloudinary.com/dutjyu71n/image/upload/v1713683057/avatars/naorllvqh2lg0vdl4ito.jpg"
+  },
+  "createdAt": {
+    "$date": "2024-04-21T07:04:16.180Z"
+  },
+  "__v": 0
+}]

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migration Dashboard - MongoDB to DynamoDB</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .card h2 {
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .phase-selector {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .phase-option {
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .phase-option:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
+    }
+
+    .phase-option.active {
+      border-color: #667eea;
+      background: #667eea;
+      color: white;
+    }
+
+    .phase-option .phase-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .phase-option .phase-desc {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .stat-item {
+      padding: 15px;
+      background: #f8f9ff;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #48bb78;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #38a169;
+    }
+
+    .btn-danger {
+      background: #f56565;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #e53e3e;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-mongodb {
+      background: #48bb78;
+      color: white;
+    }
+
+    .status-dual {
+      background: #ed8936;
+      color: white;
+    }
+
+    .status-dynamodb {
+      background: #667eea;
+      color: white;
+    }
+
+    .error-log {
+      max-height: 300px;
+      overflow-y: auto;
+      background: #fff5f5;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+
+    .error-item {
+      padding: 10px;
+      background: white;
+      border-left: 3px solid #f56565;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .error-time {
+      color: #999;
+      font-size: 11px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      transition: width 0.3s;
+    }
+
+    .icon {
+      font-size: 20px;
+    }
+
+    .verification-result {
+      margin-top: 15px;
+      padding: 15px;
+      background: #f8f9ff;
+      border-radius: 8px;
+    }
+
+    .verification-result.success {
+      background: #f0fff4;
+      border-left: 4px solid #48bb78;
+    }
+
+    .verification-result.warning {
+      background: #fffaf0;
+      border-left: 4px solid #ed8936;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚀 Migration Dashboard</h1>
+      <p class="subtitle">MongoDB → DynamoDB Migration Control Panel</p>
+    </div>
+
+    <div class="dashboard">
+      <!-- Current Phase -->
+      <div class="card">
+        <h2><span class="icon">📊</span> Current Phase</h2>
+        <div id="currentPhase" class="loading">Loading...</div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="card">
+        <h2><span class="icon">📈</span> Statistics</h2>
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-value" id="mongoCount">-</div>
+            <div class="stat-label">MongoDB</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="dynamoCount">-</div>
+            <div class="stat-label">DynamoDB</div>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Error Count -->
+      <div class="card">
+        <h2><span class="icon">⚠️</span> Errors</h2>
+        <div class="stat-item">
+          <div class="stat-value" id="errorCount">0</div>
+          <div class="stat-label">Total Errors</div>
+        </div>
+        <button class="btn btn-danger" onclick="clearErrors()">Clear Errors</button>
+      </div>
+    </div>
+
+    <!-- Phase Selector -->
+    <div class="card">
+      <h2><span class="icon">🔄</span> Migration Phases</h2>
+      <div class="phase-selector">
+        <div class="phase-option" data-phase="MONGODB_ONLY" onclick="selectPhase('MONGODB_ONLY')">
+          <div class="phase-title">1️⃣ MongoDB Only</div>
+          <div class="phase-desc">Chỉ đọc/ghi từ MongoDB (trạng thái ban đầu)</div>
+        </div>
+        
+        <div class="phase-option" data-phase="DUAL_WRITE_MONGO_PRIMARY" onclick="selectPhase('DUAL_WRITE_MONGO_PRIMARY')">
+          <div class="phase-title">2️⃣ Dual Write - MongoDB Primary</div>
+          <div class="phase-desc">Ghi cả 2 database, đọc từ MongoDB</div>
+        </div>
+        
+        <div class="phase-option" data-phase="DUAL_WRITE_DYNAMO_PRIMARY" onclick="selectPhase('DUAL_WRITE_DYNAMO_PRIMARY')">
+          <div class="phase-title">3️⃣ Dual Write - DynamoDB Primary</div>
+          <div class="phase-desc">Ghi cả 2 database, đọc từ DynamoDB</div>
+        </div>
+        
+        <div class="phase-option" data-phase="DYNAMODB_ONLY" onclick="selectPhase('DYNAMODB_ONLY')">
+          <div class="phase-title">4️⃣ DynamoDB Only</div>
+          <div class="phase-desc">Chỉ đọc/ghi từ DynamoDB (hoàn tất migration)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card">
+      <h2><span class="icon">🛠️</span> Actions</h2>
+      <button class="btn btn-secondary" onclick="verifyData()">Verify Data Consistency</button>
+      <button class="btn btn-primary" onclick="refreshStatus()">Refresh Status</button>
+      <div id="verificationResult"></div>
+    </div>
+
+    <!-- Error Log -->
+    <div class="card">
+      <h2><span class="icon">📋</span> Error Log</h2>
+      <div id="errorLog" class="error-log">
+        <div class="loading">No errors</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api/v1/migration';
+    let currentPhase = '';
+
+    // Load initial status
+    async function loadStatus() {
+      try {
+        const response = await fetch(`${API_BASE}/status`);
+        const data = await response.json();
+        
+        if (data.success) {
+          currentPhase = data.data.currentPhase;
+          updateUI(data.data);
+        }
+      } catch (error) {
+        console.error('Failed to load status:', error);
+      }
+    }
+
+    // Update UI with status data
+    function updateUI(data) {
+      // Update current phase badge
+      const phaseEl = document.getElementById('currentPhase');
+      const badgeClass = getPhaseClass(data.currentPhase);
+      phaseEl.innerHTML = `<span class="status-badge ${badgeClass}">${data.currentPhase}</span>`;
+      
+      // Update active phase option
+      document.querySelectorAll('.phase-option').forEach(el => {
+        el.classList.remove('active');
+        if (el.dataset.phase === data.currentPhase) {
+          el.classList.add('active');
+        }
+      });
+
+      // Update statistics
+      if (data.statistics) {
+        document.getElementById('mongoCount').textContent = data.statistics.mongodb.count || 0;
+        document.getElementById('dynamoCount').textContent = data.statistics.dynamodb.count || 0;
+        
+        // Update progress bar
+        const mongoCount = data.statistics.mongodb.count || 0;
+        const dynamoCount = data.statistics.dynamodb.count || 0;
+        const progress = mongoCount > 0 ? (dynamoCount / mongoCount * 100) : 0;
+        document.getElementById('progressBar').style.width = `${Math.min(progress, 100)}%`;
+      }
+
+      // Update error count
+      document.getElementById('errorCount').textContent = data.errorCount || 0;
+    }
+
+    // Get phase badge class
+    function getPhaseClass(phase) {
+      if (phase === 'MONGODB_ONLY') return 'status-mongodb';
+      if (phase === 'DYNAMODB_ONLY') return 'status-dynamodb';
+      return 'status-dual';
+    }
+
+    // Select and change phase
+    async function selectPhase(phase) {
+      if (!confirm(`Chuyển sang phase: ${phase}?`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/phase`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phase })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          alert(`✅ Đã chuyển sang phase: ${phase}`);
+          await loadStatus();
+        } else {
+          alert(`❌ Lỗi: ${data.message}`);
+        }
+      } catch (error) {
+        alert(`❌ Lỗi: ${error.message}`);
+      }
+    }
+
+    // Verify data consistency
+    async function verifyData() {
+      const resultEl = document.getElementById('verificationResult');
+      resultEl.innerHTML = '<div class="loading">Đang verify...</div>';
+
+      try {
+        const response = await fetch(`${API_BASE}/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sampleSize: 10 })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          const result = data.data;
+          const isSuccess = result.mismatched === 0;
+          const className = isSuccess ? 'success' : 'warning';
+          
+          resultEl.innerHTML = `
+            <div class="verification-result ${className}">
+              <strong>${isSuccess ? '✅' : '⚠️'} Verification Result:</strong><br>
+              Total: ${result.total} | Matched: ${result.matched} | Mismatched: ${result.mismatched}
+              ${result.errors.length > 0 ? `<br><small>Errors: ${JSON.stringify(result.errors)}</small>` : ''}
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultEl.innerHTML = `<div class="verification-result warning">❌ Error: ${error.message}</div>`;
+      }
+    }
+
+    // Load error log
+    async function loadErrors() {
+      try {
+        const response = await fetch(`${API_BASE}/errors`);
+        const data = await response.json();
+        
+        const errorLogEl = document.getElementById('errorLog');
+        
+        if (data.errors && data.errors.length > 0) {
+          errorLogEl.innerHTML = data.errors.map(err => `
+            <div class="error-item">
+              <div class="error-time">${new Date(err.timestamp).toLocaleString()}</div>
+              <strong>${err.message}</strong> - ${err.operation}<br>
+              <small>${err.error}</small>
+            </div>
+          `).join('');
+        } else {
+          errorLogEl.innerHTML = '<div class="loading">No errors</div>';
+        }
+      } catch (error) {
+        console.error('Failed to load errors:', error);
+      }
+    }
+
+    // Clear errors
+    async function clearErrors() {
+      if (!confirm('Xóa tất cả error logs?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/errors`, { method: 'DELETE' });
+        const data = await response.json();
+        
+        if (data.success) {
+          alert('✅ Đã xóa error logs');
+          await loadErrors();
+          await loadStatus();
+        }
+      } catch (error) {
+        alert(`❌ Lỗi: ${error.message}`);
+      }
+    }
+
+    // Refresh status
+    async function refreshStatus() {
+      await loadStatus();
+      await loadErrors();
+    }
+
+    // Auto refresh every 5 seconds
+    setInterval(refreshStatus, 5000);
+
+    // Initial load
+    loadStatus();
+    loadErrors();
+  </script>
+</body>
+</html>
