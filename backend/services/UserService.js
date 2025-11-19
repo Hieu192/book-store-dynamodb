@@ -68,9 +68,31 @@ class UserService {
     return await repo.findById(id);
   }
 
+  async getUserWithPassword(id) {
+    const repo = this._getRepository();
+    const user = await repo.findById(id);
+    // For MongoDB, we need to select password explicitly
+    if (this.migrationManager.getCurrentPhase().includes('MONGO')) {
+      const User = require('../models/user');
+      return await User.findById(id).select('+password');
+    }
+    return user;
+  }
+
   async getUserByEmail(email) {
     const repo = this._getRepository();
     return await repo.findByEmail(email);
+  }
+
+  async getUserByEmailWithPassword(email) {
+    const repo = this._getRepository();
+    const user = await repo.findByEmail(email);
+    // For MongoDB, we need to select password explicitly
+    if (this.migrationManager.getCurrentPhase().includes('MONGO')) {
+      const User = require('../models/user');
+      return await User.findOne({ email }).select('+password');
+    }
+    return user;
   }
 
   async createUser(userData) {

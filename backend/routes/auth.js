@@ -16,7 +16,7 @@ const {
     updateUser,
     deleteUser
 
-} = require('../controllers/authController');
+} = require('../controllers/authController.refactored');
 
 
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth')

@@ -3,7 +3,7 @@ const router = express.Router();
 
 const {
    receiveHookPayment,createPaymentLink
-} = require('../controllers/paymentController')
+} = require('../controllers/paymentController.refactored')
 
 const { isAuthenticatedUser } = require('../middlewares/auth')
 
