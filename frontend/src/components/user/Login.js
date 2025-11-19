@@ -87,7 +87,7 @@ const Login = () => {
           <MetaData title={"Login"} />
 
           <h3 className="title-30 text-center mb-35">Đăng nhập tài khoản</h3>
-          <form className="login-form" onSubmit={submitHandler}>
+          <form className="login-form" onSubmit={submitHandler} noValidate>
             <div className="row">
               <div className="col-12">
                 <div className="form-inner">
@@ -98,6 +98,7 @@ const Login = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     name="fname"
                     placeholder="Email"
+                    required={false}
                   />
                 </div>
               </div>
@@ -110,6 +111,7 @@ const Login = () => {
                     placeholder="abcdef*****"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    required={false}
                   />
                 <div
             className="absolute right-[32px] "
@@ -150,8 +152,10 @@ const Login = () => {
               <div className="flex justify-center w-[100%]">
 
               <button
+          type="button"
           className="hover:opacity-[0.9] flex justify-center bg-[#3f81f9] text-white py-[10px] mt-[25px] rounded px-[10px]"
-          onClick={() => {
+          onClick={(e) => {
+            e.preventDefault();
             loginGoogle();
           }}
         >

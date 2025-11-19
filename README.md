@@ -112,6 +112,7 @@ frontend/
 
 ### 2. Quản lý Người dùng (Users)
 - ✅ Đăng ký và đăng nhập
+- ✅ Đăng nhập với Google OAuth 2.0
 - ✅ JWT authentication
 - ✅ Phân quyền (User/Admin)
 - ✅ Quản lý profile
@@ -239,6 +240,7 @@ POST   /api/products/:id/reviews  # Thêm review
 ```
 POST   /api/users/register        # Đăng ký
 POST   /api/users/login           # Đăng nhập
+POST   /api/users/google          # Đăng nhập với Google OAuth
 GET    /api/users/profile         # Lấy profile
 PUT    /api/users/profile         # Cập nhật profile
 PUT    /api/users/password        # Đổi mật khẩu
@@ -319,6 +321,7 @@ NODE_ENV=production
 - ✅ **Migration từ MongoDB sang DynamoDB**
 - ✅ **CloudFront CDN integration**
 - ✅ **S3 image storage**
+- ✅ **Google OAuth 2.0 authentication**
 - ✅ Frontend error handling
 - ✅ Scroll to top navigation
 - ✅ Comprehensive test coverage (85.47%)
@@ -401,6 +404,6 @@ NODE_ENV=production
 
 ---
 
-**Last Updated**: November 18, 2024
-**Version**: 2.0.0
-**Status**: ✅ Production (DynamoDB + CloudFront)
+**Last Updated**: November 19, 2024
+**Version**: 2.1.0
+**Status**: ✅ Production (DynamoDB + CloudFront + Google OAuth)

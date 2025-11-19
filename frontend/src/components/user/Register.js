@@ -80,6 +80,7 @@ const Register = () => {
         className="login-form"
         encType="multipart/form-data"
         onSubmit={submitHandler}
+        noValidate
       >
         <div className="row">
           <div className="col-12">
@@ -91,6 +92,7 @@ const Register = () => {
                 placeholder="Tên của bạn"
                 value={name}
                 onChange={onchange}
+                required={false}
               />
             </div>
           </div>
@@ -103,6 +105,7 @@ const Register = () => {
                 placeholder="Email của bạn"
                 value={email}
                 onChange={onchange}
+                required={false}
               />
             </div>
           </div>
@@ -115,6 +118,7 @@ const Register = () => {
                 placeholder="abcdef*****"
                 value={password}
                 onChange={onchange}
+                required={false}
               />
               <div
             className="absolute right-[32px] "
