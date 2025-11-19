@@ -1,5 +1,6 @@
 const app = require('./app')
 const connectDatabase = require('./config/database')
+const { connectRedis, disconnectRedis } = require('./config/redis')
 
 // Handle Uncaught exceptions
 process.on('uncaughtException', err => {
@@ -14,6 +15,11 @@ if (process.env.NODE_ENV !== 'PRODUCTION') require('dotenv').config({ path: 'bac
 // Connecting to database
 connectDatabase()
 
+// Connecting to Redis (optional - will continue without it if connection fails)
+connectRedis().catch(err => {
+    console.log('⚠️  Starting server without Redis cache');
+});
+
 // Note: Image uploads now use AWS S3 instead of Cloudinary
 // S3 configuration is handled in utils/s3Upload.js
 
@@ -25,7 +31,17 @@ const server = app.listen(process.env.PORT, () => {
 process.on('unhandledRejection', err => {
     console.log(`ERROR: ${err.stack}`);
     console.log('Shutting down the server due to Unhandled Promise rejection');
-    server.close(() => {
+    server.close(async () => {
+        await disconnectRedis();
         process.exit(1)
     })
 })
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    console.log('SIGTERM received. Shutting down gracefully...');
+    server.close(async () => {
+        await disconnectRedis();
+        console.log('Process terminated');
+    });
+});

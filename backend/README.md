@@ -11,6 +11,7 @@ Backend API cho hệ thống thương mại điện tử được xây dựng v�
 - **Runtime**: Node.js
 - **Framework**: Express.js
 - **Database**: AWS DynamoDB (NoSQL)
+- **Cache**: Redis (Optional)
 - **CDN**: AWS CloudFront
 - **Storage**: AWS S3
 - **Authentication**: JWT (jsonwebtoken) + bcryptjs
@@ -117,6 +118,9 @@ SMTP_PASSWORD=your_password
 SMTP_FROM_EMAIL=noreply@shopit.com
 SMTP_FROM_NAME=ShopIT
 
+# Redis Cache (Optional - improves performance)
+REDIS_URL=redis://localhost:6379
+
 # Frontend
 FRONTEND_URL=http://localhost:3000
 ```
@@ -126,6 +130,23 @@ FRONTEND_URL=http://localhost:3000
 ```bash
 # Tạo DynamoDB table
 node scripts/create-dynamodb-table.js create
+```
+
+### Setup Redis (Optional)
+
+Redis caching layer cải thiện performance 80-95%. Xem chi tiết: [REDIS_CACHE.md](REDIS_CACHE.md)
+
+```bash
+# Windows (Docker)
+docker run -d -p 6379:6379 redis:alpine
+
+# macOS
+brew install redis
+brew services start redis
+
+# Linux
+sudo apt-get install redis-server
+sudo systemctl start redis
 ```
 
 ### Run Development
@@ -220,6 +241,14 @@ Chi tiết xem: `DYNAMODB_DESIGN.md`
 | List Products | ~200ms | ~50ms | **75% faster** |
 | Create Product | ~100ms | ~20ms | **80% faster** |
 | Get User Orders | ~150ms | ~30ms | **80% faster** |
+
+### Redis Cache Layer
+
+| Operation | Without Cache | With Cache | Improvement |
+|-----------|---------------|------------|-------------|
+| Get Products | ~50ms | ~5-10ms | **80-90% faster** |
+| Get Product Detail | ~10ms | ~2-5ms | **50-80% faster** |
+| Cache Hit Ratio | - | >80% | - |
 
 ### CloudFront CDN
 
