@@ -7,6 +7,7 @@ const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middlewares/catchAsyncErrors");
 const orderService = require('../services/OrderService');
 const productService = require('../services/ProductService');
+const { notifyOrderCreated, notifyOrderUpdated, notifyOrderDelivered } = require('../utils/notifications');
 
 // Create a new order => /api/v1/order/new
 exports.newOrder = catchAsyncErrors(async (req, res) => {
@@ -34,6 +35,9 @@ exports.newOrder = catchAsyncErrors(async (req, res) => {
   };
 
   const order = await orderService.createOrder(orderData);
+
+  // Send real-time notification
+  notifyOrderCreated(req.user.id, order);
 
   res.status(200).json({
     success: true,
@@ -107,6 +111,16 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
   };
 
   await orderService.updateOrder(req.params.id, updateData);
+
+  // Get updated order for notification
+  const updatedOrder = await orderService.getOrder(req.params.id);
+
+  // Send real-time notification
+  if (req.body.status === 'Delivered') {
+    notifyOrderDelivered(updatedOrder.user.toString(), updatedOrder);
+  } else {
+    notifyOrderUpdated(updatedOrder.user.toString(), updatedOrder);
+  }
 
   res.status(200).json({
     success: true,

@@ -47,7 +47,8 @@
     "redis": "^5.9.0",
     "stripe": "^8.128.0",
     "uuid": "^13.0.0",
-    "validator": "^13.1.17"
+    "validator": "^13.1.17",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

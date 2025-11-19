@@ -29,6 +29,7 @@ import { googleLogout } from '@react-oauth/google';
 import "../../App.css";
 import { getCategory } from "../../actions/categoryActions";
 import Login from '@mui/icons-material/Login';
+import NotificationBell from './NotificationBell';
 
 const pages = [
 	{
@@ -197,6 +198,12 @@ function Header() {
 						</Link>	
 					</Box>
 					</Box>
+					
+					{/* Notification Bell */}
+					<Box sx ={{flexGrow: 0, mr:2}}>
+						<NotificationBell />
+					</Box>
+
 					<Box sx ={{flexGrow: 0}}>
 						<Tooltip title="Mở cài đặt">
 							<IconButton onClick={handleOpenUserMenu} sx={{p:0}}>
