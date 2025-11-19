@@ -20,14 +20,21 @@ i18n
   .init({
     resources,
     fallbackLng: 'vi',
-    debug: false,
+    lng: localStorage.getItem('i18nextLng') || 'vi',
+    debug: true, // Enable debug to see what's happening
     interpolation: {
       escapeValue: false
     },
     detection: {
       order: ['localStorage', 'navigator'],
-      caches: ['localStorage']
+      caches: ['localStorage'],
+      lookupLocalStorage: 'i18nextLng'
+    },
+    react: {
+      useSuspense: false
     }
   });
+
+console.log('i18n initialized with language:', i18n.language);
 
 export default i18n;

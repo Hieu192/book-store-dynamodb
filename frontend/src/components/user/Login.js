@@ -33,17 +33,13 @@ const Login = () => {
     );
     const data = await response.json();
     dispatch(loginWithGoogle(data));
-    Swal.fire({
-      title: t('common.success'),
-      text: t('auth.loginSuccess'),
-      icon: "success"
-    });
   };
+  
   const loginFailure = (response) => {
     console.log("Login failure", response);
     Swal.fire({
-      title: t('common.error'),
-      text: t('auth.loginFailed'),
+      title: "Error",
+      text: "Login failed",
       icon: "error"
     });
   };
@@ -73,7 +69,7 @@ const Login = () => {
       alert.error(getErrorMessage(error));
       dispatch(clearErrors());
     }
-  }, [dispatch, alert, isAuthenticated, error, history, redirect]);
+  }, [dispatch, alert, isAuthenticated, error, history, redirect, t]);
 
   const submitHandler = (e) => {
     e.preventDefault();
