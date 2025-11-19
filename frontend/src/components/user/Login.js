@@ -10,8 +10,10 @@ import { login,loginWithGoogle, clearErrors } from "../../actions/userActions";
 import {  useGoogleLogin } from "@react-oauth/google";
 import Swal from "sweetalert2";
 import { getErrorMessage } from "../../utils/errorHandler";
+import { useTranslation } from "react-i18next";
 
 const Login = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -32,16 +34,16 @@ const Login = () => {
     const data = await response.json();
     dispatch(loginWithGoogle(data));
     Swal.fire({
-      title: "Thành công",
-      text: "Đăng nhập tài khoản",
+      title: t('common.success'),
+      text: t('auth.loginSuccess'),
       icon: "success"
     });
   };
   const loginFailure = (response) => {
     console.log("Login failure", response);
     Swal.fire({
-      title: "Oh no...",
-      text: "Đăng nhập ko thành công",
+      title: t('common.error'),
+      text: t('auth.loginFailed'),
       icon: "error"
     });
   };
@@ -58,8 +60,8 @@ const Login = () => {
   useEffect(() => {
     if (isAuthenticated) {
       Swal.fire({
-        title: "Thành công!",
-        text: "Đăng nhập tài khoản thành công",
+        title: t('common.success'),
+        text: t('auth.loginSuccess'),
         icon: "success",
         timer: 2000,
         showConfirmButton: false
@@ -86,29 +88,29 @@ const Login = () => {
         <Fragment>
           <MetaData title={"Login"} />
 
-          <h3 className="title-30 text-center mb-35">Đăng nhập tài khoản</h3>
+          <h3 className="title-30 text-center mb-35">{t('auth.loginTitle')}</h3>
           <form className="login-form" onSubmit={submitHandler} noValidate>
             <div className="row">
               <div className="col-12">
                 <div className="form-inner">
-                  <label htmlFor="email_field">Email</label>
+                  <label htmlFor="email_field">{t('auth.email')}</label>
                   <input
                     type="text"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     name="fname"
-                    placeholder="Email"
+                    placeholder={t('auth.emailPlaceholder')}
                     required={false}
                   />
                 </div>
               </div>
               <div className="col-12">
-                  <label htmlFor="email_password">Mật khẩu</label>
+                  <label htmlFor="email_password">{t('auth.password')}</label>
                 <div className="form-inner flex items-center">
                   <input
                     type={showPassword ? "text" : "password"}
                     name="name"
-                    placeholder="abcdef*****"
+                    placeholder={t('auth.passwordPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required={false}
@@ -131,7 +133,7 @@ const Login = () => {
                 <div className="form-inner d-flex justify-content-between">
                   <label></label>
                   <Link to="/password/forgot" className="forget-password">
-                    Quên mật khẩu?
+                    {t('auth.forgotPassword')}
                   </Link>
                 </div>
               </div>
@@ -142,13 +144,11 @@ const Login = () => {
                     className="px-[20px] py-[10px] text-[white] hover:text-[#1976D2] bg-[#1976D2] border-[1px] border-[#1976D2]  hover:bg-[white]"
                     type="submit"
                   >
-                
-                     Đăng nhập 
-                   
+                     {t('auth.login')}
                   </button>
                 </div>
               </div>
-              <div className="w-[100%] text-center">Hoặc</div>
+              <div className="w-[100%] text-center">{t('common.or')}</div>
               <div className="flex justify-center w-[100%]">
 
               <button
@@ -162,8 +162,9 @@ const Login = () => {
           <img
             src="images/google.png"
             className="w-[30px] h-[30px] bg-white rounded p-[5px] mr-[15px]"
+            alt="Google"
             />
-          Đăng nhập với google
+          {t('auth.loginWithGoogle')}
         </button>
             </div>
             </div>

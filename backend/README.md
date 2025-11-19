@@ -172,7 +172,7 @@ npm run prod
 ### Authentication
 - `POST /api/v1/register` - Đăng ký
 - `POST /api/v1/login` - Đăng nhập
-- `POST /api/v1/loginWithGoogle` - Đăng nhập Google
+- `POST /api/v1/google` - Đăng nhập Google OAuth 2.0
 - `GET /api/v1/logout` - Đăng xuất
 - `POST /api/v1/password/forgot` - Quên mật khẩu
 - `PUT /api/v1/password/reset/:token` - Reset mật khẩu
@@ -426,7 +426,11 @@ docker run -p 4000:4000 --env-file config/config.env bookstore-backend
 
 ## 📝 Changelog
 
-### v2.0.0 (Current)
+### v2.1.0 (Current)
+- ✅ Google OAuth 2.0 authentication
+- ✅ Fixed form validation for OAuth login
+
+### v2.0.0
 - ✅ Migrated từ MongoDB sang DynamoDB
 - ✅ Integrated CloudFront CDN
 - ✅ Implemented Repository Pattern
@@ -442,13 +446,14 @@ docker run -p 4000:4000 --env-file config/config.env bookstore-backend
 ## 🎯 Roadmap
 
 - [x] Add Redis caching layer
+- [x] Google OAuth 2.0 authentication
 - [ ] Implement GraphQL API
 - [ ] Add real-time notifications (WebSocket)
-- [ ] Multi-language support
+- [ ] Multi-language support (i18n)
 - [ ] Advanced analytics dashboard
 
 ---
 
-**Version**: 2.0.0  
-**Last Updated**: November 2024  
+**Version**: 2.1.0  
+**Last Updated**: November 19, 2024  
 **Maintained By**: Development Team

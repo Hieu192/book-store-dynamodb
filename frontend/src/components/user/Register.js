@@ -7,8 +7,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { register, clearErrors } from "../../actions/userActions";
 import { Link, useNavigate } from "react-router-dom";
 import { getErrorMessage } from "../../utils/errorHandler";
+import { useTranslation } from "react-i18next";
 
 const Register = () => {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [user, setUser] = useState({
     name: "",
@@ -33,7 +35,7 @@ const Register = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      alert.success("Đăng ký tài khoản thành công!");
+      alert.success(t('auth.registerSuccess'));
       history("/");
     }
 
@@ -72,9 +74,9 @@ const Register = () => {
 
   return (
     <Fragment>
-      <MetaData title={"Đăng kí tài khoản"} />
+      <MetaData title={t('auth.registerTitle')} />
 
-      <h3 className="title-30 text-center mb-20">Đăng kí tài khoản</h3>
+      <h3 className="title-30 text-center mb-20">{t('auth.registerTitle')}</h3>
 
       <form
         className="login-form"
@@ -85,11 +87,11 @@ const Register = () => {
         <div className="row">
           <div className="col-12">
             <div className="form-inner">
-              <label htmlFor="name_field">Tên</label>
+              <label htmlFor="name_field">{t('auth.name')}</label>
               <input
                 type="name"
                 name="name"
-                placeholder="Tên của bạn"
+                placeholder={t('auth.namePlaceholder')}
                 value={name}
                 onChange={onchange}
                 required={false}
@@ -98,11 +100,11 @@ const Register = () => {
           </div>
           <div className="col-12">
             <div className="form-inner">
-              <label htmlFor="email_field">Email</label>
+              <label htmlFor="email_field">{t('auth.email')}</label>
               <input
                 type="email"
                 name="email"
-                placeholder="Email của bạn"
+                placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChange={onchange}
                 required={false}
@@ -110,12 +112,12 @@ const Register = () => {
             </div>
           </div>
           <div className="col-12">
-              <label htmlFor="password_field">Mật khẩu </label>
+              <label htmlFor="password_field">{t('auth.password')}</label>
             <div className="form-inner flex items-center">
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                placeholder="abcdef*****"
+                placeholder={t('auth.passwordPlaceholder')}
                 value={password}
                 onChange={onchange}
                 required={false}
@@ -135,7 +137,7 @@ const Register = () => {
             </div>
           </div>
           <div className="form-group">
-            <label htmlFor="avatar_upload">Avatar</label>
+            <label htmlFor="avatar_upload">{t('auth.avatar')}</label>
             <div className="d-flex align-items-center">
               <div>
                 <figure className="border-[50%] w-[60px] h-[60px] overflow-hidden mr-[16px]">
@@ -160,7 +162,7 @@ const Register = () => {
                   onChange={onchange}
                 />
                 <label className="custom-file-label" htmlFor="customFile">
-                  Chọn avatar
+                  {t('auth.chooseAvatar')}
                 </label>
               </div>
             </div>
@@ -173,8 +175,7 @@ const Register = () => {
                 style={{ border: "none", background: "#1976D2" }}
                 // disabled={loading ? true : false}
               >
-                  Tạo tài khoản
-         
+                  {t('auth.createAccount')}
               </button>
             </div>
           </div>

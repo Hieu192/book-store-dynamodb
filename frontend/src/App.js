@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route,Routes } from "react-router-dom";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import ScrollToTop from "./components/layout/ScrollToTop";
+import "./i18n/i18n";
 
 import Home from "./components/Home";
 import ProductDetails from "./components/product/ProductDetails";

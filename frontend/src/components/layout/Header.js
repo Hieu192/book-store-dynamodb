@@ -30,6 +30,7 @@ import "../../App.css";
 import { getCategory } from "../../actions/categoryActions";
 import Login from '@mui/icons-material/Login';
 import NotificationBell from './NotificationBell';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const pages = [
 	{
@@ -184,6 +185,10 @@ function Header() {
 				<Box sx={{ flexGrow: 6, display: { xs: 'none', md: 'flex' } }}>
     <InputSearch/>
 </Box>
+
+				<Box sx={{ flexGrow: 0, mr: 2 }}>
+					<LanguageSwitcher />
+				</Box>
 
 				{ (user && isAuthenticated) ? (
 					<>

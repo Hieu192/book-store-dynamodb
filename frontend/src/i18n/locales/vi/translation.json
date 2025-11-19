@@ -1,0 +1,61 @@
+{
+  "common": {
+    "or": "Hoặc",
+    "loading": "Đang tải...",
+    "success": "Thành công",
+    "error": "Lỗi",
+    "confirm": "Xác nhận",
+    "cancel": "Hủy"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "logout": "Đăng xuất",
+    "loginTitle": "Đăng nhập tài khoản",
+    "registerTitle": "Đăng ký tài khoản",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "name": "Tên",
+    "forgotPassword": "Quên mật khẩu?",
+    "loginWithGoogle": "Đăng nhập với Google",
+    "createAccount": "Tạo tài khoản",
+    "loginSuccess": "Đăng nhập tài khoản thành công",
+    "registerSuccess": "Đăng ký tài khoản thành công!",
+    "loginFailed": "Đăng nhập không thành công",
+    "emailPlaceholder": "Email của bạn",
+    "passwordPlaceholder": "abcdef*****",
+    "namePlaceholder": "Tên của bạn",
+    "avatar": "Avatar",
+    "chooseAvatar": "Chọn avatar"
+  },
+  "product": {
+    "products": "Sản phẩm",
+    "productDetails": "Chi tiết sản phẩm",
+    "price": "Giá",
+    "stock": "Tồn kho",
+    "category": "Danh mục",
+    "rating": "Đánh giá",
+    "reviews": "Nhận xét",
+    "addToCart": "Thêm vào giỏ",
+    "buyNow": "Mua ngay",
+    "outOfStock": "Hết hàng",
+    "inStock": "Còn hàng"
+  },
+  "cart": {
+    "cart": "Giỏ hàng",
+    "emptyCart": "Giỏ hàng trống",
+    "total": "Tổng cộng",
+    "checkout": "Thanh toán",
+    "quantity": "Số lượng",
+    "remove": "Xóa"
+  },
+  "order": {
+    "orders": "Đơn hàng",
+    "orderDetails": "Chi tiết đơn hàng",
+    "orderStatus": "Trạng thái",
+    "orderDate": "Ngày đặt",
+    "shippingInfo": "Thông tin giao hàng",
+    "paymentInfo": "Thông tin thanh toán",
+    "orderItems": "Sản phẩm"
+  }
+}

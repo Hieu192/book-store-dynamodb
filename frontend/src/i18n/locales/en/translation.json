@@ -1,0 +1,61 @@
+{
+  "common": {
+    "or": "Or",
+    "loading": "Loading...",
+    "success": "Success",
+    "error": "Error",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "loginTitle": "Login to your account",
+    "registerTitle": "Create an account",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "forgotPassword": "Forgot password?",
+    "loginWithGoogle": "Login with Google",
+    "createAccount": "Create account",
+    "loginSuccess": "Login successful",
+    "registerSuccess": "Registration successful!",
+    "loginFailed": "Login failed",
+    "emailPlaceholder": "Your email",
+    "passwordPlaceholder": "abcdef*****",
+    "namePlaceholder": "Your name",
+    "avatar": "Avatar",
+    "chooseAvatar": "Choose avatar"
+  },
+  "product": {
+    "products": "Products",
+    "productDetails": "Product Details",
+    "price": "Price",
+    "stock": "Stock",
+    "category": "Category",
+    "rating": "Rating",
+    "reviews": "Reviews",
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "outOfStock": "Out of Stock",
+    "inStock": "In Stock"
+  },
+  "cart": {
+    "cart": "Cart",
+    "emptyCart": "Cart is empty",
+    "total": "Total",
+    "checkout": "Checkout",
+    "quantity": "Quantity",
+    "remove": "Remove"
+  },
+  "order": {
+    "orders": "Orders",
+    "orderDetails": "Order Details",
+    "orderStatus": "Status",
+    "orderDate": "Order Date",
+    "shippingInfo": "Shipping Information",
+    "paymentInfo": "Payment Information",
+    "orderItems": "Order Items"
+  }
+}
