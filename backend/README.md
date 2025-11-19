@@ -134,7 +134,7 @@ node scripts/create-dynamodb-table.js create
 
 ### Setup Redis (Optional)
 
-Redis caching layer cải thiện performance 80-95%. Xem chi tiết: [REDIS_CACHE.md](REDIS_CACHE.md)
+Redis caching layer cải thiện performance 80-95%:
 
 ```bash
 # Windows (Docker)
@@ -147,7 +147,15 @@ brew services start redis
 # Linux
 sudo apt-get install redis-server
 sudo systemctl start redis
+
+# Kiểm tra kết nối
+redis-cli ping  # Response: PONG
 ```
+
+**Cache Strategy:**
+- GET requests được cache 5 phút
+- Cache tự động xóa khi có POST/PUT/DELETE
+- Application hoạt động bình thường nếu Redis không có
 
 ### Run Development
 ```bash
@@ -422,6 +430,7 @@ docker run -p 4000:4000 --env-file config/config.env bookstore-backend
 - ✅ Migrated từ MongoDB sang DynamoDB
 - ✅ Integrated CloudFront CDN
 - ✅ Implemented Repository Pattern
+- ✅ Added Redis caching layer
 - ✅ Added comprehensive tests (85% coverage)
 - ✅ Performance improvement 75-85%
 
@@ -432,7 +441,7 @@ docker run -p 4000:4000 --env-file config/config.env bookstore-backend
 
 ## 🎯 Roadmap
 
-- [ ] Add Redis caching layer
+- [x] Add Redis caching layer
 - [ ] Implement GraphQL API
 - [ ] Add real-time notifications (WebSocket)
 - [ ] Multi-language support
