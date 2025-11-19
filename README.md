@@ -322,6 +322,7 @@ NODE_ENV=production
 - ✅ **CloudFront CDN integration**
 - ✅ **S3 image storage**
 - ✅ **Google OAuth 2.0 authentication**
+- ✅ **Multi-language support (Vietnamese & English)**
 - ✅ Frontend error handling
 - ✅ Scroll to top navigation
 - ✅ Comprehensive test coverage (85.47%)
@@ -338,7 +339,6 @@ NODE_ENV=production
    - Advanced search với filters
    - Recommendation system
    - Real-time notifications (WebSocket)
-   - Multi-language support
 
 3. **Scalability**
    - DynamoDB Global Tables (multi-region)
@@ -405,5 +405,5 @@ NODE_ENV=production
 ---
 
 **Last Updated**: November 19, 2024
-**Version**: 2.1.0
-**Status**: ✅ Production (DynamoDB + CloudFront + Google OAuth)
+**Version**: 2.2.0
+**Status**: ✅ Production (DynamoDB + CloudFront + Google OAuth + i18n)

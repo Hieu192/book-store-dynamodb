@@ -426,7 +426,12 @@ docker run -p 4000:4000 --env-file config/config.env bookstore-backend
 
 ## 📝 Changelog
 
-### v2.1.0 (Current)
+### v2.2.0 (Current)
+- ✅ Multi-language support (i18n) - Vietnamese & English
+- ✅ Language switcher in header
+- ✅ Translated Login & Register forms
+
+### v2.1.0
 - ✅ Google OAuth 2.0 authentication
 - ✅ Fixed form validation for OAuth login
 
@@ -447,13 +452,13 @@ docker run -p 4000:4000 --env-file config/config.env bookstore-backend
 
 - [x] Add Redis caching layer
 - [x] Google OAuth 2.0 authentication
+- [x] Multi-language support (i18n)
 - [ ] Implement GraphQL API
 - [ ] Add real-time notifications (WebSocket)
-- [ ] Multi-language support (i18n)
 - [ ] Advanced analytics dashboard
 
 ---
 
-**Version**: 2.1.0  
+**Version**: 2.2.0  
 **Last Updated**: November 19, 2024  
 **Maintained By**: Development Team
