@@ -18,8 +18,6 @@ import {
 import { addItemToCart } from "../../actions/cartActions";
 import { NEW_REVIEW_RESET } from "../../constants/productConstants";
 import RelatedProducts from "./RelatedProducts";
-import CustomersAlsoViewed from "./CustomersAlsoViewed";
-import FrequentlyBoughtTogether from "./FrequentlyBoughtTogether";
 import useRecentlyViewed from "../../hooks/useRecentlyViewed";
 import { Box, IconButton, Link, Rating, Stack, Typography } from "@mui/material";
 import { AddShoppingCartOutlined } from "@mui/icons-material";
