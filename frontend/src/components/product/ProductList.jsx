@@ -3,8 +3,10 @@ import React, { Fragment } from 'react'
 import Product from './Product'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { FormControl, InputLabel, Box, Select, MenuItem } from '@mui/material'
 const ProductList = ({ products, col }) => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [sortByPrice, setSortByPrice] = useState(searchParams.get('sortByPrice') || "");
   const productData = products;
@@ -14,7 +16,7 @@ const ProductList = ({ products, col }) => {
         <>
           <Box>
             <FormControl sx={{minWidth: 180, marginBottom: "1.5em", marginTop: "1.5em"}}>
-              <InputLabel id="sort-by-price">Giá</InputLabel>
+              <InputLabel id="sort-by-price">{t('filter.price')}</InputLabel>
               <Select
                 labelId="sort-by-price"
                 id="demo-simple-select"
@@ -28,8 +30,8 @@ const ProductList = ({ products, col }) => {
                   })
                 }}
               >
-                <MenuItem value='asc'>Giá tăng dần</MenuItem>
-                <MenuItem value='desc'>Giá giảm dần</MenuItem>
+                <MenuItem value='asc'>{t('filter.priceAsc')}</MenuItem>
+                <MenuItem value='desc'>{t('filter.priceDesc')}</MenuItem>
               </Select>
             </FormControl>
           </Box>

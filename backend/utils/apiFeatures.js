@@ -4,15 +4,46 @@ class APIFeatures {
         this.queryStr = queryStr;
     }
 
+    // Helper function to remove Vietnamese accents
+    removeVietnameseAccents(str) {
+        return str
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd')
+            .replace(/Đ/g, 'D');
+    }
+
     search() {
-        const keyword = this.queryStr.keyword ? {
-            name: {
-                $regex: this.queryStr.keyword,
-                $options: 'i'
-            }
-        } : {};
-       
-        this.query = this.query.find({ ...keyword });
+        if (this.queryStr.keyword) {
+            const searchKeyword = this.queryStr.keyword.trim();
+            const normalizedKeyword = this.removeVietnameseAccents(searchKeyword.toLowerCase());
+            
+            // Search in name (with accents), nameNormalized (without accents), and description
+            const keyword = {
+                $or: [
+                    {
+                        name: {
+                            $regex: searchKeyword,
+                            $options: 'i'
+                        }
+                    },
+                    {
+                        nameNormalized: {
+                            $regex: normalizedKeyword,
+                            $options: 'i'
+                        }
+                    },
+                    {
+                        description: {
+                            $regex: searchKeyword,
+                            $options: 'i'
+                        }
+                    }
+                ]
+            };
+            
+            this.query = this.query.find(keyword);
+        }
         return this;
     }
 

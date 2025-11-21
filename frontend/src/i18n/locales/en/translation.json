@@ -7,6 +7,16 @@
     "confirm": "Confirm",
     "cancel": "Cancel"
   },
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "contact": "Contact",
+    "cart": "Cart",
+    "orders": "Orders",
+    "account": "Account",
+    "admin": "Admin Dashboard",
+    "settings": "Open Settings"
+  },
   "auth": {
     "login": "Login",
     "register": "Register",
@@ -22,6 +32,7 @@
     "loginSuccess": "Login successful",
     "registerSuccess": "Registration successful!",
     "loginFailed": "Login failed",
+    "logoutSuccess": "Logout successful",
     "emailPlaceholder": "Your email",
     "passwordPlaceholder": "abcdef*****",
     "namePlaceholder": "Your name",
@@ -57,5 +68,39 @@
     "shippingInfo": "Shipping Information",
     "paymentInfo": "Payment Information",
     "orderItems": "Order Items"
+  },
+  "footer": {
+    "aboutUs": "About Us",
+    "aboutDescription": "Comic book store website",
+    "company": "Company",
+    "copyright": "Copyright 2024",
+    "bookStore": "Book Store"
+  },
+  "features": {
+    "freeShipping": "Fast Free Shipping",
+    "freeShippingDesc": "Around the world",
+    "support": "24/7 Support",
+    "supportDesc": "Contact us 24 hours a day",
+    "moneyBack": "100% Money Back",
+    "moneyBackDesc": "Guarantee of money return",
+    "securePayment": "100% Secure Payment",
+    "securePaymentDesc": "Your payments are safe with us"
+  },
+  "home": {
+    "searchTitle": "What are you looking for?",
+    "searchDesc": "We have all categories available",
+    "bestSellerTitle": "Best Seller Books!",
+    "bestSellerDesc": "The most loved books by readers",
+    "productListTitle": "Product List"
+  },
+  "filter": {
+    "filterByPrice": "Filter by Price",
+    "minPrice": "Minimum Price",
+    "maxPrice": "Maximum Price",
+    "category": "Category",
+    "ratings": "Ratings",
+    "price": "Price",
+    "priceAsc": "Price: Low to High",
+    "priceDesc": "Price: High to Low"
   }
 }

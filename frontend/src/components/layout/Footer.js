@@ -9,8 +9,10 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import PinterestIcon from '@mui/icons-material/Pinterest';
 import YouTubeIcon from '@mui/icons-material/YouTube';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
+  const { t } = useTranslation();
   return (
     <>
       <footer className="footer-area footer-design-1">
@@ -19,11 +21,11 @@ const Footer = () => {
             <Grid item md={3}>
               <div className="single-widget">
                 <div className="footer-title">
-                  <h3>Về chúng tôi</h3>
+                  <h3>{t('footer.aboutUs')}</h3>
                 </div>
                 <div className="footerabout-content">
                   <p>
-                    Web bán truyện tranh
+                    {t('footer.aboutDescription')}
                     </p>
                 </div>
                 <div className="footer-address">
@@ -83,7 +85,7 @@ const Footer = () => {
             <Grid item md={2}>
               <div className="single-widget">
                       <div className="footer-title">
-                        <h3>Company</h3>
+                        <h3>{t('footer.company')}</h3>
                       </div>
                   </div>
             </Grid>
@@ -92,8 +94,8 @@ const Footer = () => {
             <div className="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12 text-lg-start text-center">
               <div className="copy-right-area">
                 <p className="copy-text">
-                  Copyright 2024
-                  <Link to="/">Bán sách</Link>
+                  {t('footer.copyright')} {' '}
+                  <Link to="/">{t('footer.bookStore')}</Link>
                 </p>
               </div>
             </div>

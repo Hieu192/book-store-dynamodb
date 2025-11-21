@@ -1,11 +1,24 @@
 const mongoose = require("mongoose");
 
+// Helper function to remove Vietnamese accents
+function removeVietnameseAccents(str) {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D');
+}
+
 const productSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, "Please enter product name"],
     trim: true,
     maxLength: [100, "Product name cannot exceed 100 characters"],
+  },
+  nameNormalized: {
+    type: String,
+    trim: true,
   },
   price: {
     type: Number,
@@ -87,6 +100,17 @@ const productSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+
+// Create text index for better search
+productSchema.index({ name: 'text', nameNormalized: 'text', description: 'text' });
+
+// Pre-save middleware to generate normalized name
+productSchema.pre('save', function(next) {
+  if (this.isModified('name')) {
+    this.nameNormalized = removeVietnameseAccents(this.name.toLowerCase());
+  }
+  next();
 });
 
 module.exports = mongoose.model("Product", productSchema);

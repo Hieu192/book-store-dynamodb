@@ -1,7 +1,9 @@
 import { Box, Container, Grid } from "@mui/material";
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const Features = () => {
+  const { t } = useTranslation();
   return (
     <Container className="feature-area feature-style-one mb-100 pt-76">
       <Grid container display="flex">
@@ -14,8 +16,8 @@ const Features = () => {
                 />
               </div>
               <div class="feature-content">
-                <h5>Fast Free Shipping</h5>
-                <p>Around the world</p>
+                <h5>{t('features.freeShipping')}</h5>
+                <p>{t('features.freeShippingDesc')}</p>
               </div>
             </div>
         </Grid>
@@ -28,8 +30,8 @@ const Features = () => {
                 />
               </div>
               <div class="feature-content">
-                <h5>24/7 Supports</h5>
-                <p>Contact us 24 hours</p>
+                <h5>{t('features.support')}</h5>
+                <p>{t('features.supportDesc')}</p>
               </div>
             </div>
         </Grid>
@@ -42,8 +44,8 @@ const Features = () => {
                 />
               </div>
               <div class="feature-content">
-                <h5>100% Money Back</h5>
-                <p>Guarantee of money retun</p>
+                <h5>{t('features.moneyBack')}</h5>
+                <p>{t('features.moneyBackDesc')}</p>
               </div>
             </div>
         </Grid>
@@ -57,8 +59,8 @@ const Features = () => {
                 />
               </div>
               <div class="feature-content">
-                <h5>100% Secure Payment</h5>
-                <p>Your payment are safe with us.</p>
+                <h5>{t('features.securePayment')}</h5>
+                <p>{t('features.securePaymentDesc')}</p>
               </div>
             </div>
         </Grid>

@@ -49,6 +49,9 @@ class DynamoProductRepository extends IProductRepository {
       path: img.path || img.url  // Use path if available, fallback to url
     }));
     
+    // Generate normalized name for better search
+    const nameNormalized = this._removeVietnameseAccents(productData.name.toLowerCase());
+    
     return {
       ...this._getProductKeys(productId),
       GSI1PK: `CATEGORY#${productData.category}`,
@@ -58,6 +61,7 @@ class DynamoProductRepository extends IProductRepository {
       EntityType: 'Product',
       productId,
       name: productData.name,
+      nameNormalized: nameNormalized,
       price: productData.price,
       description: productData.description,
       ratings: productData.ratings || 0,
@@ -284,6 +288,17 @@ class DynamoProductRepository extends IProductRepository {
   }
 
   /**
+   * Helper function to remove Vietnamese accents
+   */
+  _removeVietnameseAccents(str) {
+    return str
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D');
+  }
+
+  /**
    * Apply client-side filters
    */
   _applyFilters(items, filters) {
@@ -291,10 +306,20 @@ class DynamoProductRepository extends IProductRepository {
 
     if (filters.keyword) {
       const keyword = filters.keyword.toLowerCase();
-      filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(keyword) ||
-        item.description.toLowerCase().includes(keyword)
-      );
+      const normalizedKeyword = this._removeVietnameseAccents(keyword);
+      
+      filtered = filtered.filter(item => {
+        const name = item.name.toLowerCase();
+        const description = item.description.toLowerCase();
+        const normalizedName = this._removeVietnameseAccents(name);
+        const normalizedDescription = this._removeVietnameseAccents(description);
+        
+        // Search in both original and normalized forms
+        return name.includes(keyword) ||
+               description.includes(keyword) ||
+               normalizedName.includes(normalizedKeyword) ||
+               normalizedDescription.includes(normalizedKeyword);
+      });
     }
 
     if (filters.price) {

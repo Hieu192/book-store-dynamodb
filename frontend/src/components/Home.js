@@ -10,6 +10,7 @@ import ProductList from "./product/ProductList"
 
 import { useDispatch, useSelector } from "react-redux";
 import { useAlert } from "react-alert";
+import { useTranslation } from "react-i18next";
 import { getProducts } from "../actions/productActions";
 import { getCategory } from "../actions/categoryActions";
 import Banner from "./layout/Banner";
@@ -26,6 +27,7 @@ const { createSliderWithTooltip } = Slider;
 const Range = createSliderWithTooltip(Slider.Range);
 const maxPrice = 1000000;
 const Home = () => {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const [catagory, setCatagory] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
@@ -84,15 +86,15 @@ const Home = () => {
           {ishome ? (
             <div class="col-lg-12 mt-5">
               <div class="section-head-style-one">
-                <h2>Các cuốn sách best seller!</h2>
-                <p>Các cuốn sách được độc giả yêu thích nhất</p>
+                <h2>{t('home.bestSellerTitle')}</h2>
+                <p>{t('home.bestSellerDesc')}</p>
               </div>
             </div>
           ) : (
             <>
               <div class="col-lg-12 mt-100">
                 <div class="section-head-style-one">
-                  <h2>Danh sách sản phẩm</h2>
+                  <h2>{t('home.productListTitle')}</h2>
                 </div>
               </div>
             </>

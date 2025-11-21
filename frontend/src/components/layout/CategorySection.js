@@ -1,11 +1,13 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "../../App1.css";
 import { Box, Card, CardContent, CardMedia, Container, Grid, Typography } from "@mui/material";
 
 
 const CategorySection = ({setCatagory}) => {
+  const { t } = useTranslation();
   const { category } = useSelector((state) => state.category);
   return (
     <div class="category-area-start category-style-one mt-10 position-relative">
@@ -13,8 +15,8 @@ const CategorySection = ({setCatagory}) => {
         <div class="row">
           <div class="col-lg-12">
             <div class="section-head-style-one">
-              <h2>Bạn đang tìm kiếm gì ?</h2>
-              <p>Chúng tôi có sẳn tất cả các danh mục</p>
+              <h2>{t('home.searchTitle')}</h2>
+              <p>{t('home.searchDesc')}</p>
             </div>
           </div>
         </div>

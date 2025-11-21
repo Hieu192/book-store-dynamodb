@@ -130,6 +130,9 @@ FRONTEND_URL=http://localhost:3000
 ```bash
 # Tạo DynamoDB table
 node scripts/create-dynamodb-table.js create
+
+# Update existing products với normalized names (cho Vietnamese search)
+node scripts/update-dynamodb-normalized-names.js
 ```
 
 ### Setup Redis (Optional)
@@ -330,7 +333,8 @@ backend/
 │   └── sendEmail.js
 ├── scripts/
 │   ├── create-dynamodb-table.js
-│   └── seed-data.js
+│   ├── update-dynamodb-normalized-names.js
+│   └── view-dynamodb-items.js
 ├── tests/
 │   ├── unit/
 │   ├── integration/
@@ -426,10 +430,18 @@ docker run -p 4000:4000 --env-file config/config.env bookstore-backend
 
 ## 📝 Changelog
 
-### v2.2.0 (Current)
+### v2.3.0 (Current)
+- ✅ Vietnamese search support (có dấu & không dấu)
+- ✅ Smart autocomplete with product suggestions
+- ✅ Real-time notifications via WebSocket
+- ✅ Auto-clear cart after successful order
+- ✅ Optimized search performance with normalized names
+
+### v2.2.0
 - ✅ Multi-language support (i18n) - Vietnamese & English
 - ✅ Language switcher in header
 - ✅ Translated Login & Register forms
+- ✅ Full UI translation (products, cart, orders, filters)
 
 ### v2.1.0
 - ✅ Google OAuth 2.0 authentication
@@ -453,12 +465,14 @@ docker run -p 4000:4000 --env-file config/config.env bookstore-backend
 - [x] Add Redis caching layer
 - [x] Google OAuth 2.0 authentication
 - [x] Multi-language support (i18n)
+- [x] Real-time notifications (WebSocket)
+- [x] Vietnamese search optimization
 - [ ] Implement GraphQL API
-- [ ] Add real-time notifications (WebSocket)
 - [ ] Advanced analytics dashboard
+- [ ] Mobile app (React Native)
 
 ---
 
-**Version**: 2.2.0  
-**Last Updated**: November 19, 2024  
+**Version**: 2.3.0  
+**Last Updated**: November 20, 2024  
 **Maintained By**: Development Team

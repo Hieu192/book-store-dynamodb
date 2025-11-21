@@ -104,9 +104,12 @@ frontend/
 
 ### 1. Quản lý Sản phẩm (Products)
 - ✅ CRUD operations cho sách
-- ✅ Tìm kiếm và lọc theo nhiều tiêu chí
-- ✅ Phân trang và sắp xếp
-- ✅ Upload và quản lý hình ảnh
+- ✅ Tìm kiếm tiếng Việt thông minh (có dấu & không dấu)
+- ✅ Autocomplete với gợi ý sản phẩm
+- ✅ Lọc theo giá, danh mục, đánh giá
+- ✅ Sắp xếp theo giá (tăng/giảm dần)
+- ✅ Phân trang
+- ✅ Upload và quản lý hình ảnh (S3 + CloudFront)
 - ✅ Quản lý tồn kho
 - ✅ Đánh giá và review sản phẩm
 
@@ -136,6 +139,14 @@ frontend/
 - ✅ Cập nhật số lượng
 - ✅ Tính toán tổng tiền
 - ✅ Áp dụng mã giảm giá
+- ✅ Tự động xóa giỏ hàng sau khi đặt hàng thành công
+
+### 6. Thông báo Real-time (WebSocket)
+- ✅ Thông báo đơn hàng mới
+- ✅ Cập nhật trạng thái đơn hàng
+- ✅ Thông báo giao hàng thành công
+- ✅ Icon chuông với badge số lượng
+- ✅ Dropdown hiển thị lịch sử thông báo
 
 ---
 
@@ -323,6 +334,10 @@ NODE_ENV=production
 - ✅ **S3 image storage**
 - ✅ **Google OAuth 2.0 authentication**
 - ✅ **Multi-language support (Vietnamese & English)**
+- ✅ **Vietnamese search optimization (có dấu & không dấu)**
+- ✅ **Smart autocomplete with product suggestions**
+- ✅ **Real-time notifications via WebSocket**
+- ✅ **Auto-clear cart after successful order**
 - ✅ Frontend error handling
 - ✅ Scroll to top navigation
 - ✅ Comprehensive test coverage (85.47%)
@@ -336,9 +351,9 @@ NODE_ENV=production
 
 2. **Features mới**
    - Wishlist functionality
-   - Advanced search với filters
+   - Advanced filters (price range, ratings, stock)
    - Recommendation system
-   - Real-time notifications (WebSocket)
+   - Order tracking with map
 
 3. **Scalability**
    - DynamoDB Global Tables (multi-region)
@@ -404,6 +419,6 @@ NODE_ENV=production
 
 ---
 
-**Last Updated**: November 19, 2024
-**Version**: 2.2.0
-**Status**: ✅ Production (DynamoDB + CloudFront + Google OAuth + i18n)
+**Last Updated**: November 20, 2024
+**Version**: 2.3.0
+**Status**: ✅ Production (DynamoDB + CloudFront + Google OAuth + i18n + Vietnamese Search + WebSocket)

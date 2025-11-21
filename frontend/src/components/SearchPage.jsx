@@ -11,6 +11,7 @@ import ProductList from "./product/ProductList"
 
 import { useDispatch, useSelector } from "react-redux";
 import { useAlert } from "react-alert";
+import { useTranslation } from "react-i18next";
 import { getProducts } from "../actions/productActions";
 import { getCategory } from "../actions/categoryActions";
 
@@ -24,6 +25,7 @@ const { createSliderWithTooltip } = Slider;
 const Range = createSliderWithTooltip(Slider.Range);
 const maxPrice = 1000000;
 const SearchPage = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentPage, setCurrentPage] = useState(Number.parseInt(searchParams.get('page') || '1'));
   const defaultPriceRange = [Number.parseInt(searchParams.get('price[gte]')||'0'), 
@@ -89,13 +91,13 @@ const SearchPage = () => {
               <h4 className="mb-3"
                   style={{ color: "#1976d2", fontSize: "22px", fontWeight: "700" }}
                 >
-                  Lọc theo giá
+                  {t('filter.filterByPrice')}
                 </h4>
-              <span>Giá tối thiểu</span>
+              <span>{t('filter.minPrice')}</span>
               <Input type='text' id='minPrice' defaultValue={price[0]} onChange={(e) => {
                 setCurrentPrice(e, 0)
               }}/>
-              <span>Giá tối đa</span>
+              <span>{t('filter.maxPrice')}</span>
               <Input type='text' id='maxPrice' defaultValue={price[1]} onChange={(e) => {
                 setCurrentPrice(e, 1)
               }} />
@@ -105,7 +107,7 @@ const SearchPage = () => {
                 <h4 className="mb-3"
                   style={{ color: "#1976d2", fontSize: "22px", fontWeight: "700" }}
                 >
-                  Danh mục
+                  {t('filter.category')}
                 </h4>
 
                 <FormGroup>
@@ -131,7 +133,7 @@ const SearchPage = () => {
               <h4 className="mb-3"
                   style={{ color: "#1976d2", fontSize: "22px", fontWeight: "700" }}
                 >
-                  Ratings
+                  {t('filter.ratings')}
                 </h4>
 
                 <ul className="pl-0">

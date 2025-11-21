@@ -31,23 +31,24 @@ import { getCategory } from "../../actions/categoryActions";
 import Login from '@mui/icons-material/Login';
 import NotificationBell from './NotificationBell';
 import LanguageSwitcher from './LanguageSwitcher';
-
-const pages = [
-	{
-		name:"Trang chủ",
-		des:'/',
-	},
-	{
-		name:"Sản phẩm",
-		des:"/search"
-	}
-];
-const settings = ['Thông tin cá nhân', 'Tài khoản', 'ADMIN', 'Đăng xuất'];
+import { useTranslation } from 'react-i18next';
 
 function Header() {
+  const { t } = useTranslation();
   const [anchorElCat, setAnchorElCat] = React.useState(null);
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+
+  const pages = [
+	{
+		name: t('nav.home'),
+		des:'/',
+	},
+	{
+		name: t('nav.products'),
+		des:"/search"
+	}
+  ];
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -81,8 +82,8 @@ function Header() {
 	  dispatch(logout());
 	  googleLogout();
 	  Swal.fire({
-		title: "Thành công",
-		text: "Đăng xuất thành công",
+		title: t('common.success'),
+		text: t('auth.logoutSuccess'),
 		icon: "success"
 	  });
   };
@@ -194,9 +195,8 @@ function Header() {
 					<>
 					<Box sx ={{flexGrow: 0, mr:2, position:'relative'}}>
 
-					<Box title='Giỏ hàng' sx={{display:'flex', flexDirection:'row'}}> 
+					<Box title={t('nav.cart')} sx={{display:'flex', flexDirection:'row'}}> 
 						<Link style={{display:"flex"}} to="/cart">
-							<Typography mr={5}>Giỏ hàng</Typography>
 							<Badge badgeContent={cartItems.length} color="secondary">
 								<ShoppingCartOutlinedIcon/>
 							</Badge>
@@ -210,7 +210,7 @@ function Header() {
 					</Box>
 
 					<Box sx ={{flexGrow: 0}}>
-						<Tooltip title="Mở cài đặt">
+						<Tooltip title={t('nav.settings')}>
 							<IconButton onClick={handleOpenUserMenu} sx={{p:0}}>
 								<Avatar src={user.avatar.url} alt='User Avatar'></Avatar>
 							</IconButton>
@@ -234,7 +234,7 @@ function Header() {
 							{user && user.role !== 'admin' ? (
 								<MenuItem onClick={handleCloseUserMenu}>
 									<Link to="/orders/me">
-										<Typography textAlign="center">Đơn hàng</Typography>
+										<Typography textAlign="center">{t('nav.orders')}</Typography>
 									</Link>
 								</MenuItem>
 								
@@ -242,7 +242,7 @@ function Header() {
 							) : (
 								<MenuItem onClick={handleCloseUserMenu}>
 									<Link to="/dashboard">
-										<Typography textAlign="center">Trang ADMIN</Typography>
+										<Typography textAlign="center">{t('nav.admin')}</Typography>
 									</Link>
 								</MenuItem>
 							)}
@@ -250,13 +250,13 @@ function Header() {
 							
 							<MenuItem onClick={handleCloseUserMenu}>
 								<Link to="/me" >
-									<Typography textAlign="center">Tài khoản</Typography>
+									<Typography textAlign="center">{t('nav.account')}</Typography>
 								</Link>
 							</MenuItem>
 
 							<MenuItem onClick={handleCloseUserMenu}>
 								<Link to="/" onClick={logoutHandler}>
-									<Typography textAlign="center">Đăng xuất</Typography>
+									<Typography textAlign="center">{t('auth.logout')}</Typography>
 								</Link>
 							</MenuItem>
 						</Menu>
@@ -268,17 +268,17 @@ function Header() {
 					<>
 						<Box sx ={{flexGrow: 0, display:"flex", flexDirection:"row"}} >
 							<Link to="/login">
-								<Stack display="flex" direction="row" title="Đăng nhập">
+								<Stack display="flex" direction="row" title={t('auth.register')}>
 									<Typography mr="10px">
-										Đăng ký |
+										{t('auth.register')} |
 									</Typography>
 
 								</Stack>
 							</Link>
 							<Link to="/login">
-								<Stack display="flex" direction="row" title="Đăng nhập">
+								<Stack display="flex" direction="row" title={t('auth.login')}>
 									<Typography mr="10px">
-										Đăng nhập
+										{t('auth.login')}
 									</Typography>
 									<AccountCircleIcon/>	
 								</Stack>
