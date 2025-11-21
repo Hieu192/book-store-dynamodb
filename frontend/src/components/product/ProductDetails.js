@@ -18,6 +18,8 @@ import {
 import { addItemToCart } from "../../actions/cartActions";
 import { NEW_REVIEW_RESET } from "../../constants/productConstants";
 import RelatedProducts from "./RelatedProducts";
+import CustomersAlsoViewed from "./CustomersAlsoViewed";
+import FrequentlyBoughtTogether from "./FrequentlyBoughtTogether";
 import useRecentlyViewed from "../../hooks/useRecentlyViewed";
 import { Box, IconButton, Link, Rating, Stack, Typography } from "@mui/material";
 import { AddShoppingCartOutlined } from "@mui/icons-material";
@@ -355,6 +357,11 @@ const ProductDetails = ({ match }) => {
               </div>
             </div>
           </section>
+
+          {/* TODO: Enable after testing */}
+          {/* <FrequentlyBoughtTogether productId={params.id} currentProduct={product} /> */}
+          
+          {/* <CustomersAlsoViewed productId={params.id} /> */}
 
           <RelatedProducts productId={params.id} category={product.category} />
 

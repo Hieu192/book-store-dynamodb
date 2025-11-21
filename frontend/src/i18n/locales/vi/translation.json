@@ -106,6 +106,8 @@
   "recommendations": {
     "relatedProducts": "Sản phẩm liên quan",
     "bestSellers": "Bán chạy nhất",
-    "recentlyViewed": "Đã xem gần đây"
+    "recentlyViewed": "Đã xem gần đây",
+    "customersAlsoViewed": "Khách hàng cũng xem",
+    "frequentlyBoughtTogether": "Thường mua cùng nhau"
   }
 }

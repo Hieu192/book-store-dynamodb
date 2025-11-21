@@ -106,6 +106,8 @@
   "recommendations": {
     "relatedProducts": "Related Products",
     "bestSellers": "Best Sellers",
-    "recentlyViewed": "Recently Viewed"
+    "recentlyViewed": "Recently Viewed",
+    "customersAlsoViewed": "Customers Also Viewed",
+    "frequentlyBoughtTogether": "Frequently Bought Together"
   }
 }

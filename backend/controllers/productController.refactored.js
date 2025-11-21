@@ -282,3 +282,42 @@ exports.getFrequentlyBoughtTogether = catchAsyncErrors(async (req, res, next) =>
     totalOrders: orders.length
   });
 });
+
+// Seed Recommendation Data (Development only)   =>   /api/v1/dev/seed-recommendations
+exports.seedRecommendations = catchAsyncErrors(async (req, res, next) => {
+  if (process.env.NODE_ENV === 'PRODUCTION') {
+    return next(new ErrorHandler('Not available in production', 403));
+  }
+
+  const viewTracker = require('../utils/viewTracker');
+
+  // Mock sessions
+  const mockSessions = [
+    { sessionId: 'session-001', views: ['662d0a76c3eea4473ccf6930', '662d0a49c3eea4473ccf692e', '662d0a5fc3eea4473ccf692f'] },
+    { sessionId: 'session-002', views: ['662d0a76c3eea4473ccf6930', '662d0a49c3eea4473ccf692e', '662d0a2fc3eea4473ccf692d'] },
+    { sessionId: 'session-003', views: ['662d0a76c3eea4473ccf6930', '662d0a5fc3eea4473ccf692f', '662d0a2fc3eea4473ccf692d'] },
+    { sessionId: 'session-004', views: ['662d0a49c3eea4473ccf692e', '662d0a76c3eea4473ccf6930', '662d0a5fc3eea4473ccf692f'] },
+    { sessionId: 'session-005', views: ['662d0a5fc3eea4473ccf692f', '662d0a76c3eea4473ccf6930', '662d0a49c3eea4473ccf692e'] },
+    { sessionId: 'session-006', views: ['662d0a2fc3eea4473ccf692d', '662d0a76c3eea4473ccf6930'] },
+    { sessionId: 'session-007', views: ['662d0a76c3eea4473ccf6930', '662d0a49c3eea4473ccf692e'] },
+    { sessionId: 'session-008', views: ['662d0a49c3eea4473ccf692e', '662d0a5fc3eea4473ccf692f', '662d0a76c3eea4473ccf6930'] },
+    { sessionId: 'session-009', views: ['662d0a76c3eea4473ccf6930', '662d0a2fc3eea4473ccf692d', '662d0a49c3eea4473ccf692e'] },
+    { sessionId: 'session-010', views: ['662d0a5fc3eea4473ccf692f', '662d0a2fc3eea4473ccf692d', '662d0a76c3eea4473ccf6930'] }
+  ];
+
+  // Track all views
+  mockSessions.forEach(session => {
+    session.views.forEach(productId => {
+      viewTracker.trackView(session.sessionId, productId);
+    });
+  });
+
+  const stats = viewTracker.getStats();
+
+  res.status(200).json({
+    success: true,
+    message: 'Recommendation data seeded',
+    stats: stats,
+    mockSessions: mockSessions.length
+  });
+});

@@ -50,7 +50,29 @@ class MockQuery {
     let result = [...this.data];
 
     // Apply filters
-    if (this.filters.name && this.filters.name.$regex) {
+    // Handle $or operator for search
+    if (this.filters.$or) {
+      result = result.filter(item => {
+        return this.filters.$or.some(condition => {
+          if (condition.name && condition.name.$regex) {
+            const regex = new RegExp(condition.name.$regex, condition.name.$options);
+            return regex.test(item.name);
+          }
+          if (condition.nameNormalized && condition.nameNormalized.$regex) {
+            const regex = new RegExp(condition.nameNormalized.$regex, condition.nameNormalized.$options);
+            return item.nameNormalized && regex.test(item.nameNormalized);
+          }
+          if (condition.description && condition.description.$regex) {
+            const regex = new RegExp(condition.description.$regex, condition.description.$options);
+            return item.description && regex.test(item.description);
+          }
+          return false;
+        });
+      });
+    }
+    
+    // Handle simple name filter (for backward compatibility)
+    if (this.filters.name && this.filters.name.$regex && !this.filters.$or) {
       const regex = new RegExp(this.filters.name.$regex, this.filters.name.$options);
       result = result.filter(item => regex.test(item.name));
     }

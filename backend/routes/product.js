@@ -14,12 +14,19 @@ const {
     deleteReview,
     getRelatedProducts,
     getBestSellers,
-    getProductsByIds
+    getProductsByIds,
+    trackProductView,
+    getAlsoViewed,
+    getFrequentlyBoughtTogether,
+    seedRecommendations
 
 } = require('../controllers/productController.refactored')
 
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 const { cache, invalidateCache } = require('../middlewares/cache');
+
+// Development route for seeding data
+router.route('/dev/seed-recommendations').post(seedRecommendations);
 
 // Recommendation routes (MUST be before /products and /product/:id to avoid conflicts)
 router.route('/products/bestsellers').get(cache(600), getBestSellers); // Cache 10 minutes
@@ -30,6 +37,9 @@ router.route('/products').get(cache(300), getProducts);
 
 // Product detail and related (specific routes before generic :id)
 router.route('/product/:id/related').get(cache(600), getRelatedProducts);
+router.route('/product/:id/also-viewed').get(cache(300), getAlsoViewed);
+router.route('/product/:id/bought-together').get(cache(600), getFrequentlyBoughtTogether);
+router.route('/product/:id/view').post(trackProductView);
 router.route('/product/:id').get(cache(300), getSingleProduct);
 
 // Admin routes

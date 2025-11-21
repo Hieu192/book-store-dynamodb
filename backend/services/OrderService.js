@@ -92,6 +92,25 @@ class OrderService {
     const repo = this._getRepository();
     return await repo.delete(id);
   }
+
+  /**
+   * Get orders containing a specific product
+   * Used for "Frequently Bought Together" recommendations
+   */
+  async getOrdersContainingProduct(productId) {
+    const repo = this._getRepository();
+    const allOrders = await repo.findAll();
+    
+    // Filter orders that contain the product
+    const ordersWithProduct = allOrders.filter(order => {
+      return order.orderItems && order.orderItems.some(item => {
+        const itemProductId = item.product?._id || item.product;
+        return itemProductId.toString() === productId.toString();
+      });
+    });
+
+    return ordersWithProduct;
+  }
 }
 
 module.exports = new OrderService();
