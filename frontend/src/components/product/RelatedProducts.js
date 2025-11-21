@@ -1,15 +1,56 @@
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import Product from "./Product";
-import { Grid } from "@mui/material";
+import { Grid, CircularProgress, Box } from "@mui/material";
 
-const RelatedProducts = ({ category }) => {
-  const { products } = useSelector((state) => state.products);
-  const i = 0;
+const RelatedProducts = ({ productId, category }) => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRelatedProducts = async () => {
+      if (!productId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const { data } = await axios.get(
+          `http://localhost:4000/api/v1/product/${productId}/related?limit=5`,
+          { withCredentials: true }
+        );
+        setProducts(data.products || []);
+      } catch (error) {
+        console.error('Error fetching related products:', error);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRelatedProducts();
+  }, [productId]);
+
+  if (loading) {
+    return (
+      <section className="related-product pb-80">
+        <div className="container">
+          <Box display="flex" justifyContent="center" my={4}>
+            <CircularProgress />
+          </Box>
+        </div>
+      </section>
+    );
+  }
+
+  if (products.length === 0) {
+    return null;
+  }
+
   return (
     <>
-      {category ? (
+      {products.length > 0 && (
         <>
           <section className="related-product pb-80">
             <div className="container">
@@ -20,24 +61,16 @@ const RelatedProducts = ({ category }) => {
               </div>
               
               <Grid container columnSpacing={{xs: 1, sm:2,md:2}} rowSpacing={{xs: 1, sm:2,md:2 }}>
-                {products.map(function (product) {
-                    if (product.category === category) {
-                      return (
-                        <>
-                          <Grid key={product._id} item md={2.4} xs={12} sm={4} >
-                            <Product  product={product} col={3} />
-                          </Grid>                          
-                        </>
-                      );
-                    }
-                  })}
+                {products.map((product) => (
+                  <Grid key={product._id} item md={2.4} xs={12} sm={4}>
+                    <Product product={product} col={3} />
+                  </Grid>
+                ))}
               </Grid>
                
             </div>
           </section>
         </>
-      ) : (
-        <></>
       )}
     </>
   );

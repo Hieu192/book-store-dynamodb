@@ -115,6 +115,30 @@ class ProductService {
     const repo = this._getRepository();
     return await repo.updateStock(productId, quantity);
   }
+
+  /**
+   * Get related products
+   */
+  async getRelatedProducts(productId, limit = 6) {
+    const repo = this._getRepository();
+    return await repo.getRelatedProducts(productId, limit);
+  }
+
+  /**
+   * Get best sellers
+   */
+  async getBestSellers(limit = 10, category = null) {
+    const repo = this._getRepository();
+    return await repo.getBestSellers(limit, category);
+  }
+
+  /**
+   * Get products by IDs (for recently viewed)
+   */
+  async getProductsByIds(productIds) {
+    const repo = this._getRepository();
+    return await repo.getProductsByIds(productIds);
+  }
 }
 
 module.exports = new ProductService();

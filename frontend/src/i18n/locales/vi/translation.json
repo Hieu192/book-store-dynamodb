@@ -102,5 +102,10 @@
     "price": "Giá",
     "priceAsc": "Giá tăng dần",
     "priceDesc": "Giá giảm dần"
+  },
+  "recommendations": {
+    "relatedProducts": "Sản phẩm liên quan",
+    "bestSellers": "Bán chạy nhất",
+    "recentlyViewed": "Đã xem gần đây"
   }
 }

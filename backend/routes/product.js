@@ -11,15 +11,25 @@ const {
     deleteProduct,
     createProductReview,
     getProductReviews,
-    deleteReview
+    deleteReview,
+    getRelatedProducts,
+    getBestSellers,
+    getProductsByIds
 
 } = require('../controllers/productController.refactored')
 
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 const { cache, invalidateCache } = require('../middlewares/cache');
 
+// Recommendation routes (MUST be before /products and /product/:id to avoid conflicts)
+router.route('/products/bestsellers').get(cache(600), getBestSellers); // Cache 10 minutes
+router.route('/products/by-ids').get(cache(300), getProductsByIds);
+
 // Public routes with cache (5 minutes)
 router.route('/products').get(cache(300), getProducts);
+
+// Product detail and related (specific routes before generic :id)
+router.route('/product/:id/related').get(cache(600), getRelatedProducts);
 router.route('/product/:id').get(cache(300), getSingleProduct);
 
 // Admin routes

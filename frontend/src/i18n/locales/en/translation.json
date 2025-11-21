@@ -102,5 +102,10 @@
     "price": "Price",
     "priceAsc": "Price: Low to High",
     "priceDesc": "Price: High to Low"
+  },
+  "recommendations": {
+    "relatedProducts": "Related Products",
+    "bestSellers": "Best Sellers",
+    "recentlyViewed": "Recently Viewed"
   }
 }

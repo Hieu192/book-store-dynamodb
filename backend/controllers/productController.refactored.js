@@ -176,3 +176,109 @@ exports.getAdminProducts = catchAsyncErrors(async (req, res, next) => {
     products: result.products
   });
 });
+
+// Get Related Products   =>   /api/v1/products/:id/related
+exports.getRelatedProducts = catchAsyncErrors(async (req, res, next) => {
+  const limit = parseInt(req.query.limit) || 6;
+  const products = await productService.getRelatedProducts(req.params.id, limit);
+
+  res.status(200).json({
+    success: true,
+    count: products.length,
+    products
+  });
+});
+
+// Get Best Sellers   =>   /api/v1/products/bestsellers
+exports.getBestSellers = catchAsyncErrors(async (req, res, next) => {
+  const limit = parseInt(req.query.limit) || 10;
+  const category = req.query.category || null;
+  const products = await productService.getBestSellers(limit, category);
+
+  res.status(200).json({
+    success: true,
+    count: products.length,
+    products
+  });
+});
+
+// Get Products by IDs   =>   /api/v1/products/by-ids
+exports.getProductsByIds = catchAsyncErrors(async (req, res, next) => {
+  const ids = req.query.ids ? req.query.ids.split(',') : [];
+  const products = await productService.getProductsByIds(ids);
+
+  res.status(200).json({
+    success: true,
+    count: products.length,
+    products
+  });
+});
+
+// Track Product View   =>   /api/v1/product/:id/view
+exports.trackProductView = catchAsyncErrors(async (req, res, next) => {
+  const viewTracker = require('../utils/viewTracker');
+  const sessionId = req.sessionID || req.headers['x-session-id'] || req.ip;
+  
+  viewTracker.trackView(sessionId, req.params.id);
+
+  res.status(200).json({
+    success: true,
+    message: 'View tracked'
+  });
+});
+
+// Get Customers Also Viewed   =>   /api/v1/product/:id/also-viewed
+exports.getAlsoViewed = catchAsyncErrors(async (req, res, next) => {
+  const viewTracker = require('../utils/viewTracker');
+  const limit = parseInt(req.query.limit) || 6;
+  
+  const alsoViewedData = viewTracker.getAlsoViewed(req.params.id, limit);
+  const productIds = alsoViewedData.map(item => item.productId);
+  
+  // Get actual product data
+  const products = await productService.getProductsByIds(productIds);
+
+  res.status(200).json({
+    success: true,
+    count: products.length,
+    products
+  });
+});
+
+// Get Frequently Bought Together   =>   /api/v1/product/:id/bought-together
+exports.getFrequentlyBoughtTogether = catchAsyncErrors(async (req, res, next) => {
+  const productId = req.params.id;
+  const limit = parseInt(req.query.limit) || 3;
+
+  // Get orders containing this product
+  const orderService = require('../services/OrderService');
+  const orders = await orderService.getOrdersContainingProduct(productId);
+
+  // Count product co-occurrences
+  const productCounts = {};
+  
+  orders.forEach(order => {
+    order.orderItems.forEach(item => {
+      if (item.product.toString() !== productId) {
+        const id = item.product.toString();
+        productCounts[id] = (productCounts[id] || 0) + 1;
+      }
+    });
+  });
+
+  // Sort by frequency and get top N
+  const topProductIds = Object.entries(productCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([id, count]) => id);
+
+  // Get actual product data
+  const products = await productService.getProductsByIds(topProductIds);
+
+  res.status(200).json({
+    success: true,
+    count: products.length,
+    products,
+    totalOrders: orders.length
+  });
+});

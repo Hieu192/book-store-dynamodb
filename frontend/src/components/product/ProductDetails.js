@@ -18,6 +18,7 @@ import {
 import { addItemToCart } from "../../actions/cartActions";
 import { NEW_REVIEW_RESET } from "../../constants/productConstants";
 import RelatedProducts from "./RelatedProducts";
+import useRecentlyViewed from "../../hooks/useRecentlyViewed";
 import { Box, IconButton, Link, Rating, Stack, Typography } from "@mui/material";
 import { AddShoppingCartOutlined } from "@mui/icons-material";
 import AddIcon from '@mui/icons-material/Add';
@@ -27,6 +28,9 @@ import VerticalCarousel from "./VerticalCarousel";
 const ProductDetails = ({ match }) => {
 
   const params = useParams();
+  
+  // Track recently viewed
+  useRecentlyViewed(params.id);
 
   const [quantity, setQuantity] = useState(1);
   const [rating, setRating] = useState(0);
@@ -352,7 +356,7 @@ const ProductDetails = ({ match }) => {
             </div>
           </section>
 
-          <RelatedProducts category={product.category} />
+          <RelatedProducts productId={params.id} category={product.category} />
 
           {product.reviews && product.reviews.length > 0 && (
             <ListReviews reviews={product.reviews} />

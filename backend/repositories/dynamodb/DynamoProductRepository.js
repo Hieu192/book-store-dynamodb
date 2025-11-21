@@ -546,6 +546,108 @@ class DynamoProductRepository extends IProductRepository {
 
     return this.findById(productId);
   }
+
+  /**
+   * Get related products (same category)
+   */
+  async getRelatedProducts(productId, limit = 6) {
+    try {
+      const product = await this.findById(productId);
+      
+      if (!product) {
+        return [];
+      }
+
+      // Query products in same category
+      const params = {
+        TableName: this.tableName,
+        IndexName: 'GSI1',
+        KeyConditionExpression: 'GSI1PK = :category',
+        ExpressionAttributeValues: {
+          ':category': `CATEGORY#${product.category}`
+        },
+        Limit: limit + 5 // Get more to filter out current product
+      };
+
+      const result = await this.dynamodb.query(params).promise();
+      
+      // Filter out current product and transform
+      const relatedProducts = result.Items
+        .filter(item => item.productId !== productId)
+        .slice(0, limit)
+        .map(item => this._transformFromDynamo(item));
+
+      return relatedProducts;
+    } catch (error) {
+      console.error('Error getting related products:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get best sellers
+   */
+  async getBestSellers(limit = 10, category = null) {
+    try {
+      let items = [];
+
+      if (category) {
+        // Get products by category
+        const params = {
+          TableName: this.tableName,
+          IndexName: 'GSI1',
+          KeyConditionExpression: 'GSI1PK = :category',
+          ExpressionAttributeValues: {
+            ':category': `CATEGORY#${category}`
+          }
+        };
+        const result = await this.dynamodb.query(params).promise();
+        items = result.Items;
+      } else {
+        // Scan all products
+        items = await this._scanProducts(0, 1);
+      }
+
+      // Sort by numOfReviews and ratings (proxy for best sellers)
+      const sortedProducts = items
+        .sort((a, b) => {
+          // Primary sort: number of reviews
+          if (b.numOfReviews !== a.numOfReviews) {
+            return b.numOfReviews - a.numOfReviews;
+          }
+          // Secondary sort: ratings
+          return b.ratings - a.ratings;
+        })
+        .slice(0, limit)
+        .map(item => this._transformFromDynamo(item));
+
+      return sortedProducts;
+    } catch (error) {
+      console.error('Error getting best sellers:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get products by IDs (for recently viewed)
+   */
+  async getProductsByIds(productIds) {
+    try {
+      if (!productIds || productIds.length === 0) {
+        return [];
+      }
+
+      const products = await Promise.all(
+        productIds.map(id => this.findById(id).catch(() => null))
+      );
+
+      // Filter out null values (products not found)
+      return products.filter(p => p !== null);
+    } catch (error) {
+      console.error('Error getting products by IDs:', error);
+      return [];
+    }
+  }
 }
 
 module.exports = DynamoProductRepository;

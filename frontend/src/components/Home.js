@@ -22,6 +22,8 @@ import Banner2 from "./layout/Banner2"
 import Checkbox from "@mui/material/Checkbox";
 import InputSlider from "./layout/InputSlider";
 import LatestProduct from "./product/LatestProduct";
+import BestSellers from "./product/BestSellers";
+import RecentlyViewed from "./product/RecentlyViewed";
 
 const { createSliderWithTooltip } = Slider;
 const Range = createSliderWithTooltip(Slider.Range);
@@ -120,6 +122,13 @@ const Home = () => {
                 activeLinkClass="bg-f96822"
               />
             </div>
+          )}
+
+          {ishome && (
+            <Container>
+              <RecentlyViewed />
+              <BestSellers limit={10} />
+            </Container>
           )}
 
           <Features />

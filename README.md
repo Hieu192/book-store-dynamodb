@@ -392,11 +392,6 @@ NODE_ENV=production
 
 ---
 
-## 📞 SUPPORT & CONTACT
-
-Để biết thêm chi tiết về từng phần của dự án, vui lòng tham khảo các file documentation trong thư mục tương ứng.
-
----
 
 ## 🎉 MIGRATION SUCCESS
 
