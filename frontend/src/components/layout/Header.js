@@ -34,262 +34,264 @@ import LanguageSwitcher from './LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
 
 function Header() {
-  const { t } = useTranslation();
-  const [anchorElCat, setAnchorElCat] = React.useState(null);
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
+	const { t } = useTranslation();
+	const [anchorElCat, setAnchorElCat] = React.useState(null);
+	const [anchorElNav, setAnchorElNav] = React.useState(null);
+	const [anchorElUser, setAnchorElUser] = React.useState(null);
 
-  const pages = [
-	{
-		name: t('nav.home'),
-		des:'/',
-	},
-	{
-		name: t('nav.products'),
-		des:"/search"
+	const pages = [
+		{
+			name: t('nav.home'),
+			des: '/',
+		},
+		{
+			name: t('nav.products'),
+			des: "/search"
+		}
+	];
+
+	const handleOpenNavMenu = (event) => {
+		setAnchorElNav(event.currentTarget);
+	};
+	const handleOpenUserMenu = (event) => {
+		setAnchorElUser(event.currentTarget);
+	};
+
+	const handleCloseNavMenu = () => {
+		setAnchorElNav(null);
+	};
+
+	const handleCloseUserMenu = () => {
+		setAnchorElUser(null);
+	};
+
+	const handleCloseCat = () => {
+		setAnchorElCat(null);
 	}
-  ];
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
-  };
+	const dispatch = useDispatch();
+	useEffect(() => {
+		dispatch(getCategory());
+	}, [dispatch]);
 
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
-
-  const handleCloseCat = () => {
-	setAnchorElCat(null);
-  }
-
-  const dispatch = useDispatch();
-  useEffect(() => {
-	  dispatch(getCategory());
-  }, [dispatch]);
-
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
-  console.log(user?.avatar?.url)
-  const { category } = useSelector((state) => state.category);
-  const { cartItems } = useSelector((state) => state.cart);
-  const logoutHandler = () => {
-	  dispatch(logout());
-	  googleLogout();
-	  Swal.fire({
-		title: t('common.success'),
-		text: t('auth.logoutSuccess'),
-		icon: "success"
-	  });
-  };
+	const { isAuthenticated, user } = useSelector((state) => state.auth);
+	console.log(user?.avatar?.url)
+	const { category } = useSelector((state) => state.category);
+	const { cartItems } = useSelector((state) => state.cart);
+	const logoutHandler = () => {
+		dispatch(logout());
+		googleLogout();
+		Swal.fire({
+			title: t('common.success'),
+			text: t('auth.logoutSuccess'),
+			icon: "success"
+		});
+	};
 
 
-  return (
-    <AppBar position='fixed'>
-		<Container maxWidth="xl">
-			<Toolbar disableGutters>
-				<Typography
-					variant='h6'
-					noWrap
-					sx={{
-						mr:2,
-						display: {xs:"none", md:"flex"},
-						fontFamily:"monospace",
-						fontWeight:700,
-						letterSpacing: '.3rem',
-						color:'inherit',
-						textDecoration:'none'
-					}}	
-				>
-					<img src="images/logo.png"width="50px"className="rounded-[50%] ml-[32px]"></img>
-				</Typography>
-
-				<Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-					<IconButton
-						size="large"
-						aria-label="account of current user"
-						aria-controls="menu-appbar"
-						aria-haspopup="true"
-						onClick={handleOpenNavMenu}
-						color="inherit"
-					>
-					<MenuIcon />
-					</IconButton>
-					<Menu
-						id="menu-appbar"
-						anchorEl={anchorElNav}
-						anchorOrigin={{
-							vertical: 'bottom',
-							horizontal: 'left',
-						}}
-						keepMounted
-						transformOrigin={{
-							vertical: 'top',
-							horizontal: 'left',
-						}}
-						open={Boolean(anchorElNav)}
-						onClose={handleCloseNavMenu}
+	return (
+		<AppBar position='fixed'>
+			<Container maxWidth="xl">
+				<Toolbar disableGutters>
+					<Typography
+						variant='h6'
+						noWrap
 						sx={{
-							display: { xs: 'block', md: 'none' },
+							mr: 2,
+							display: { xs: "none", md: "flex" },
+							fontFamily: "monospace",
+							fontWeight: 700,
+							letterSpacing: '.3rem',
+							color: 'inherit',
+							textDecoration: 'none'
 						}}
 					>
-						{pages.map((page) => (
-							<MenuItem key={page.des} onClick={handleCloseNavMenu}>
-								<Link to={page.des}>
-										<Typography textAlign="center">{page.name}</Typography>
-									
-								</Link>
-							</MenuItem>
-						))}
-					</Menu>
-				</Box>
-				<CollectionsBookmarkIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
-				<Typography
-					variant="h5"
-					noWrap
-					component="a"
-					href="#app-bar-with-responsive-menu"
-					sx={{
-					mr: 2,
-					display: { xs: 'flex', md: 'none' },
-					flexGrow: 1,
-					fontFamily: 'monospace',
-					fontWeight: 700,
-					letterSpacing: '.3rem',
-					color: 'inherit',
-					textDecoration: 'none',
-					}}
-				>
-					LOGO
-				</Typography>
-				
-				<Box sx={{ flexGrow: 5, display: { xs: 'none', md: 'flex' } }}>
-					{pages.map((page) => (
-						<Button 
-							key={page.des}
-							onClick={handleCloseNavMenu}
-							sx={{ my:2, color:'white', display:'block' }}
+						<Link to="/" onClick={() => window.scrollTo(0, 0)}>
+							<img src="images/logo.png" width="50px" className="rounded-[50%] ml-[32px]" style={{ cursor: 'pointer' }}></img>
+						</Link>
+					</Typography>
+
+					<Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+						<IconButton
+							size="large"
+							aria-label="account of current user"
+							aria-controls="menu-appbar"
+							aria-haspopup="true"
+							onClick={handleOpenNavMenu}
+							color="inherit"
 						>
-								<Link to={page.des}>
-										<Typography textAlign="center">{page.name}</Typography>
-									
-								</Link>	
-						</Button>
-					))}
-				</Box>
-
-				<Box sx={{ flexGrow: 6, display: { xs: 'none', md: 'flex' } }}>
-    <InputSearch/>
-</Box>
-
-				<Box sx={{ flexGrow: 0, mr: 2 }}>
-					<LanguageSwitcher />
-				</Box>
-
-				{ (user && isAuthenticated) ? (
-					<>
-					<Box sx ={{flexGrow: 0, mr:2, position:'relative'}}>
-
-					<Box title={t('nav.cart')} sx={{display:'flex', flexDirection:'row'}}> 
-						<Link style={{display:"flex"}} to="/cart">
-							<Badge badgeContent={cartItems.length} color="secondary">
-								<ShoppingCartOutlinedIcon/>
-							</Badge>
-						</Link>	
-					</Box>
-					</Box>
-					
-					{/* Notification Bell */}
-					<Box sx ={{flexGrow: 0, mr:2}}>
-						<NotificationBell />
-					</Box>
-
-					<Box sx ={{flexGrow: 0}}>
-						<Tooltip title={t('nav.settings')}>
-							<IconButton onClick={handleOpenUserMenu} sx={{p:0}}>
-								<Avatar src={user.avatar.url} alt='User Avatar'></Avatar>
-							</IconButton>
-						</Tooltip>
+							<MenuIcon />
+						</IconButton>
 						<Menu
-							sx={{mt:'45px'}}
-							id='menu-appbar'
-							anchorEl={anchorElUser}
+							id="menu-appbar"
+							anchorEl={anchorElNav}
 							anchorOrigin={{
-								vertical:'top',
-								horizontal:'right'
+								vertical: 'bottom',
+								horizontal: 'left',
 							}}
 							keepMounted
 							transformOrigin={{
-								vertical:'top',
-								horizontal:'right'
+								vertical: 'top',
+								horizontal: 'left',
 							}}
-							open = {Boolean(anchorElUser)}
-							onClose={handleCloseUserMenu}
-						>	
-							{user && user.role !== 'admin' ? (
-								<MenuItem onClick={handleCloseUserMenu}>
-									<Link to="/orders/me">
-										<Typography textAlign="center">{t('nav.orders')}</Typography>
-									</Link>
-								</MenuItem>
-								
-								
-							) : (
-								<MenuItem onClick={handleCloseUserMenu}>
-									<Link to="/dashboard">
-										<Typography textAlign="center">{t('nav.admin')}</Typography>
-									</Link>
-								</MenuItem>
-							)}
-							
-							
-							<MenuItem onClick={handleCloseUserMenu}>
-								<Link to="/me" >
-									<Typography textAlign="center">{t('nav.account')}</Typography>
-								</Link>
-							</MenuItem>
+							open={Boolean(anchorElNav)}
+							onClose={handleCloseNavMenu}
+							sx={{
+								display: { xs: 'block', md: 'none' },
+							}}
+						>
+							{pages.map((page) => (
+								<MenuItem key={page.des} onClick={handleCloseNavMenu}>
+									<Link to={page.des}>
+										<Typography textAlign="center">{page.name}</Typography>
 
-							<MenuItem onClick={handleCloseUserMenu}>
-								<Link to="/" onClick={logoutHandler}>
-									<Typography textAlign="center">{t('auth.logout')}</Typography>
-								</Link>
-							</MenuItem>
+									</Link>
+								</MenuItem>
+							))}
 						</Menu>
-						
-						
 					</Box>
-					</>
-				) : (
-					<>
-						<Box sx ={{flexGrow: 0, display:"flex", flexDirection:"row"}} >
-							<Link to="/login">
-								<Stack display="flex" direction="row" title={t('auth.register')}>
-									<Typography mr="10px">
-										{t('auth.register')} |
-									</Typography>
+					<CollectionsBookmarkIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
+					<Typography
+						variant="h5"
+						noWrap
+						component="a"
+						href="#app-bar-with-responsive-menu"
+						sx={{
+							mr: 2,
+							display: { xs: 'flex', md: 'none' },
+							flexGrow: 1,
+							fontFamily: 'monospace',
+							fontWeight: 700,
+							letterSpacing: '.3rem',
+							color: 'inherit',
+							textDecoration: 'none',
+						}}
+					>
+						LOGO
+					</Typography>
 
-								</Stack>
-							</Link>
-							<Link to="/login">
-								<Stack display="flex" direction="row" title={t('auth.login')}>
-									<Typography mr="10px">
-										{t('auth.login')}
-									</Typography>
-									<AccountCircleIcon/>	
-								</Stack>
-							</Link>
-						</Box>	
+					<Box sx={{ flexGrow: 5, display: { xs: 'none', md: 'flex' } }}>
+						{pages.map((page) => (
+							<Button
+								key={page.des}
+								onClick={handleCloseNavMenu}
+								sx={{ my: 2, color: 'white', display: 'block' }}
+							>
+								<Link to={page.des}>
+									<Typography textAlign="center">{page.name}</Typography>
 
-					</>
-				)}
-			</Toolbar>
-		</Container>
-	</AppBar>
-  );
+								</Link>
+							</Button>
+						))}
+					</Box>
+
+					<Box sx={{ flexGrow: 6, display: { xs: 'none', md: 'flex' } }}>
+						<InputSearch />
+					</Box>
+
+					<Box sx={{ flexGrow: 0, mr: 2 }}>
+						<LanguageSwitcher />
+					</Box>
+
+					{(user && isAuthenticated) ? (
+						<>
+							<Box sx={{ flexGrow: 0, mr: 2, position: 'relative' }}>
+
+								<Box title={t('nav.cart')} sx={{ display: 'flex', flexDirection: 'row' }}>
+									<Link style={{ display: "flex" }} to="/cart">
+										<Badge badgeContent={cartItems.length} color="secondary">
+											<ShoppingCartOutlinedIcon />
+										</Badge>
+									</Link>
+								</Box>
+							</Box>
+
+							{/* Notification Bell */}
+							<Box sx={{ flexGrow: 0, mr: 2 }}>
+								<NotificationBell />
+							</Box>
+
+							<Box sx={{ flexGrow: 0 }}>
+								<Tooltip title={t('nav.settings')}>
+									<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+										<Avatar src={user.avatar.url} alt='User Avatar'></Avatar>
+									</IconButton>
+								</Tooltip>
+								<Menu
+									sx={{ mt: '45px' }}
+									id='menu-appbar'
+									anchorEl={anchorElUser}
+									anchorOrigin={{
+										vertical: 'top',
+										horizontal: 'right'
+									}}
+									keepMounted
+									transformOrigin={{
+										vertical: 'top',
+										horizontal: 'right'
+									}}
+									open={Boolean(anchorElUser)}
+									onClose={handleCloseUserMenu}
+								>
+									{user && user.role !== 'admin' ? (
+										<MenuItem onClick={handleCloseUserMenu}>
+											<Link to="/orders/me">
+												<Typography textAlign="center">{t('nav.orders')}</Typography>
+											</Link>
+										</MenuItem>
+
+
+									) : (
+										<MenuItem onClick={handleCloseUserMenu}>
+											<Link to="/dashboard">
+												<Typography textAlign="center">{t('nav.admin')}</Typography>
+											</Link>
+										</MenuItem>
+									)}
+
+
+									<MenuItem onClick={handleCloseUserMenu}>
+										<Link to="/me" >
+											<Typography textAlign="center">{t('nav.account')}</Typography>
+										</Link>
+									</MenuItem>
+
+									<MenuItem onClick={handleCloseUserMenu}>
+										<Link to="/" onClick={logoutHandler}>
+											<Typography textAlign="center">{t('auth.logout')}</Typography>
+										</Link>
+									</MenuItem>
+								</Menu>
+
+
+							</Box>
+						</>
+					) : (
+						<>
+							<Box sx={{ flexGrow: 0, display: "flex", flexDirection: "row" }} >
+								<Link to="/login">
+									<Stack display="flex" direction="row" title={t('auth.register')}>
+										<Typography mr="10px">
+											{t('auth.register')} |
+										</Typography>
+
+									</Stack>
+								</Link>
+								<Link to="/login">
+									<Stack display="flex" direction="row" title={t('auth.login')}>
+										<Typography mr="10px">
+											{t('auth.login')}
+										</Typography>
+										<AccountCircleIcon />
+									</Stack>
+								</Link>
+							</Box>
+
+						</>
+					)}
+				</Toolbar>
+			</Container>
+		</AppBar>
+	);
 }
 export default Header;

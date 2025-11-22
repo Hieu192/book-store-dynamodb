@@ -1,5 +1,6 @@
 import React, { Fragment } from 'react'
-import { Link,useNavigate } from 'react-router-dom'
+import API_CONFIG from '../../config/config';
+import { Link, useNavigate } from 'react-router-dom'
 
 import MetaData from '../layout/MetaData'
 import CheckoutSteps from './CheckoutSteps'
@@ -12,11 +13,11 @@ import { createOrder, clearErrors } from "../../actions/orderActions";
 
 const ConfirmOrder = () => {
 
-    const navigate= useNavigate();
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const { cartItems, shippingInfo } = useSelector(state => state.cart)
     const { user } = useSelector(state => state.auth)
-    const {discount} = useSelector(state => state.cart)
+    const { discount } = useSelector(state => state.cart)
 
     // Calculate Order Prices
     const itemsPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
@@ -28,11 +29,11 @@ const ConfirmOrder = () => {
 
     const processToPayment = async () => {
         const data = {
-            orderCode:randomNumber,
+            orderCode: randomNumber,
             itemsPrice: Math.floor(itemsPrice),
             shippingPrice,
             taxPrice,
-            totalPrice:Math.floor(totalPrice)
+            totalPrice: Math.floor(totalPrice)
         }
 
         sessionStorage.setItem('orderInfo', JSON.stringify(data))
@@ -40,19 +41,19 @@ const ConfirmOrder = () => {
             orderItems: cartItems,
             shippingInfo,
             ...data
-          };
-          dispatch(createOrder(order));
-        
-       
-        const res=await fetch('http://localhost:4000/api/v1/create-payment-link',{
-            method: 'POST', 
+        };
+        dispatch(createOrder(order));
+
+
+        const res = await fetch(`${API_CONFIG.API_URL}/create-payment-link`, {
+            method: 'POST',
             headers: {
-              'Content-Type': 'application/json' 
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data) 
-          })
-          const {checkoutUrl}=await res.json()
-       window.location.href=checkoutUrl
+            body: JSON.stringify(data)
+        })
+        const { checkoutUrl } = await res.json()
+        window.location.href = checkoutUrl
 
     }
 
@@ -65,33 +66,33 @@ const ConfirmOrder = () => {
 
             <Container>
                 <Grid container>
-                    <Grid item mt={5} md={8}> 
-                        <Box sx={{borderRadius:"1rem", background:"white", padding:"20px"}}>
-            
-                            <h3 className="mb-3" style={{fontWeight:'700', marginTop:"5px"}}><PlaceOutlinedIcon/> Địa chỉ</h3>
+                    <Grid item mt={5} md={8}>
+                        <Box sx={{ borderRadius: "1rem", background: "white", padding: "20px" }}>
+
+                            <h3 className="mb-3" style={{ fontWeight: '700', marginTop: "5px" }}><PlaceOutlinedIcon /> Địa chỉ</h3>
                             <p
                                 style={{
-                                    fontWeight:"600",
-                                    fontSize:"20px",
-                                    color:"#1976d2"
+                                    fontWeight: "600",
+                                    fontSize: "20px",
+                                    color: "#1976d2"
                                 }}
                             >{user && user.name}</p>
                             <p><b>Số điện thoại:</b> {shippingInfo.phoneNo}</p>
                             <p className="mb-4"><b>Địa chỉ:</b> {`${shippingInfo.address}, ${shippingInfo.city}, ${shippingInfo.postalCode}, ${shippingInfo.country}`}</p>
-                            <Link to="/shipping"> 
+                            <Link to="/shipping">
                                 <p
                                     style={{
-                                        fontSize:"18px",
-                                        fontWeight:"500",
-                                        color:"#1976d2"
+                                        fontSize: "18px",
+                                        fontWeight: "500",
+                                        color: "#1976d2"
                                     }}
                                 >Chỉnh sửa địa chỉ</p>
                             </Link>
-                        </Box>    
-                        
+                        </Box>
+
                         <h4 className="m-4 font-normal"><b>Giỏ hàng</b> ( {cartItems.length} sản phẩm )
                         </h4>
-                        <Box sx={{borderRadius:"1rem", background:"white", padding:"20px"}}>
+                        <Box sx={{ borderRadius: "1rem", background: "white", padding: "20px" }}>
                             {cartItems.map(item => (
                                 <Fragment>
                                     <div className="cart-item my-1" key={item.product}>
@@ -111,25 +112,25 @@ const ConfirmOrder = () => {
 
                                         </div>
                                     </div>
-                                    <Divider/>
+                                    <Divider />
                                 </Fragment>
                             ))}
                         </Box>
-                        
+
                     </Grid>
                     <Grid item pl={3} my={4} md={4}>
                         <div id="order_summary" className='bg-white'>
                             <h3 className='mb-4 text-xl'><b>Thành tiền</b></h3>
-                        
+
                             <p>Đơn giá:  <span className="order-summary-values">{itemsPrice} đ</span></p>
                             {discountAmount > 0 && (
                                 <p>Mã giảm giá: <span className="order-summary-values">-{discountAmount} đ</span></p>
                             )}
                             <p>Tiền vận chuyển: <span className="order-summary-values">+{shippingPrice} đ</span></p>
                             <p>Thuế VAT:  <span className="order-summary-values">+{taxPrice} đ</span></p>
-                            <p className='mt-4' style={{color:"#028C2E", fontSize:"22px", fontWeight:"700"}}>Tổng cộng: <span className="order-summary-values">{totalPrice} đ</span></p>
+                            <p className='mt-4' style={{ color: "#028C2E", fontSize: "22px", fontWeight: "700" }}>Tổng cộng: <span className="order-summary-values">{totalPrice} đ</span></p>
 
-                            <Divider/>
+                            <Divider />
 
 
                             <button id="checkout_btn" className="btn btn-primary btn-block" onClick={processToPayment}>Tiến hành thanh toán</button>
@@ -143,7 +144,7 @@ const ConfirmOrder = () => {
                 </div>
 
                 <div className="col-12 col-lg-3 my-4">
-                    
+
                 </div>
             </div>
 

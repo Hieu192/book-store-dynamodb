@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import API_CONFIG from '../../config/config';
 import { Grid, Typography, Box } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
@@ -9,30 +10,40 @@ const RecentlyViewed = () => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
+    let isMounted = true;
+    const abortController = new AbortController();
+
     const fetchRecentlyViewed = async () => {
       try {
         // Get recently viewed IDs from localStorage
         const recentlyViewedIds = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
-        
+
         if (recentlyViewedIds.length === 0) {
           return;
         }
 
         // Fetch products by IDs
         const { data } = await axios.get(
-          `http://localhost:4000/api/v1/products/by-ids?ids=${recentlyViewedIds.join(',')}`,
-          { withCredentials: true }
+          `${API_CONFIG.API_URL}/products/by-ids?ids=${recentlyViewedIds.join(',')}`,
+          {
+            withCredentials: true,
+            signal: abortController.signal
+          }
         );
-        
+
         // Sort products to match the order in localStorage (most recent first)
         const sortedProducts = recentlyViewedIds
           .map(id => data.products.find(p => p._id === id))
           .filter(p => p !== undefined);
-        
-        setProducts(sortedProducts);
+
+        if (isMounted) {
+          setProducts(sortedProducts);
+        }
       } catch (error) {
-        console.error('Error fetching recently viewed:', error);
-        setProducts([]);
+        if (error.name !== 'CanceledError' && isMounted) {
+          console.error('Error fetching recently viewed:', error);
+          setProducts([]);
+        }
       }
     };
 
@@ -40,11 +51,16 @@ const RecentlyViewed = () => {
 
     // Listen for storage changes
     const handleStorageChange = () => {
-      fetchRecentlyViewed();
+      if (isMounted) {
+        fetchRecentlyViewed();
+      }
     };
 
     window.addEventListener('recentlyViewedUpdated', handleStorageChange);
+
     return () => {
+      isMounted = false;
+      abortController.abort();
       window.removeEventListener('recentlyViewedUpdated', handleStorageChange);
     };
   }, []);
@@ -55,9 +71,9 @@ const RecentlyViewed = () => {
 
   return (
     <Box my={6}>
-      <Typography 
-        variant="h4" 
-        fontWeight={700} 
+      <Typography
+        variant="h4"
+        fontWeight={700}
         mb={3}
         textAlign="center"
         sx={{ color: '#1976d2' }}
@@ -65,7 +81,7 @@ const RecentlyViewed = () => {
         {t('recommendations.recentlyViewed')}
       </Typography>
       <Grid container spacing={2}>
-        {products.slice(0, 6).map((product) => (
+        {products.slice(0, 10).map((product) => (
           <Grid key={product._id} item xs={6} sm={4} md={2.4}>
             <Product product={product} />
           </Grid>

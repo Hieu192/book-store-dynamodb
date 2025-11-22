@@ -1,4 +1,5 @@
 import { Autocomplete, TextField, Box, Typography } from "@mui/material";
+import API_CONFIG from '../../config/config';
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -27,7 +28,7 @@ const Search = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(
-        `http://localhost:4000/api/v1/products?keyword=${searchTerm}`,
+        `${API_CONFIG.API_URL}/products?keyword=${searchTerm}`,
         { withCredentials: true }
       );
       setOptions(data.products || []);
@@ -91,8 +92,8 @@ const Search = () => {
           }}
           onChange={handleSelect}
           renderOption={(props, option) => (
-            <Box 
-              component="li" 
+            <Box
+              component="li"
               {...props}
               onMouseDown={(e) => {
                 // Ngăn blur khi đang composing

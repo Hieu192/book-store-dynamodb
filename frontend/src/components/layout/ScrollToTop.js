@@ -4,21 +4,35 @@ import { useLocation } from "react-router-dom";
 /**
  * ScrollToTop component
  * Automatically scrolls to top when route changes
- * 
- * @param {Object} props
- * @param {boolean} props.smooth - Use smooth scroll animation (default: true)
+ * Ensures scroll happens reliably across all browsers
  */
-const ScrollToTop = ({ smooth = true }) => {
+const ScrollToTop = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    // Scroll to top when pathname changes
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: smooth ? "smooth" : "auto"
+    // Method 1: Standard window.scrollTo
+    window.scrollTo(0, 0);
+
+    // Method 2: Direct DOM manipulation (more reliable)
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0; // For older browsers
+
+    // Method 3: Delayed scroll to ensure DOM is ready
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
     });
-  }, [pathname, smooth]);
+
+    // Method 4: Additional timeout for complex layouts
+    const timer = setTimeout(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 0);
+
+    console.log('📍 ScrollToTop triggered for:', pathname);
+
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   return null;
 };

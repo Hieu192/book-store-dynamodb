@@ -1,4 +1,5 @@
 import axios from 'axios'
+import API_CONFIG from '../config/config';
 import {
     LOGIN_REQUEST,
     LOGIN_SUCCESS,
@@ -50,7 +51,7 @@ export const login = (email, password) => async (dispatch) => {
             }
         }
 
-        const {data}= await axios.post('http://localhost:4000/api/v1/login', { email, password }, {
+        const {data}= await axios.post(`${API_CONFIG.API_URL}/login`, { email, password }, {
             withCredentials: true // Cấu hình Axios để bao gồm cookie trong yêu cầu
           },config)
         dispatch({
@@ -74,7 +75,7 @@ export const loginWithGoogle = (data) => async (dispatch) => {
             }
         }
 
-        const dataUser= await axios.post('http://localhost:4000/api/v1/loginWithGoogle', {...data}, {
+        const dataUser= await axios.post(`${API_CONFIG.API_URL}/loginWithGoogle`, {...data}, {
             withCredentials: true // Cấu hình Axios để bao gồm cookie trong yêu cầu
           },config)
         dispatch({
@@ -100,7 +101,7 @@ export const register = (userData) => async (dispatch) => {
                 'Content-Type': 'multipart/form-data'
             }
         }
-        const { data } = await axios.post('http://localhost:4000/api/v1/register', userData, config)
+        const { data } = await axios.post(`${API_CONFIG.API_URL}/register`, userData, config)
         localStorage.setItem("token",JSON.stringify(data.token))
         dispatch({
             type: REGISTER_USER_SUCCESS,
@@ -121,7 +122,7 @@ export const loadUser = () => async (dispatch) => {
 
         dispatch({ type: LOAD_USER_REQUEST })
         
-        const { data } = await axios.get('http://localhost:4000/api/v1/me',{
+        const { data } = await axios.get(`${API_CONFIG.API_URL}/me`,{
             headers: {
                 'Authorization': 'Bearer your_access_token'
               },
@@ -153,7 +154,7 @@ export const updateProfile = (userData) => async (dispatch) => {
             }
         }
 
-        const { data } = await axios.put('http://localhost:4000/api/v1/me/update', userData,{
+        const { data } = await axios.put(`${API_CONFIG.API_URL}/me/update`, userData,{
             withCredentials: true // Cấu hình Axios để bao gồm cookie trong yêu cầu
           } ,config)
 
@@ -182,7 +183,7 @@ export const updatePassword = (passwords) => async (dispatch) => {
             }
         }
 
-        const { data } = await axios.put('http://localhost:4000/api/v1/password/update', passwords,{
+        const { data } = await axios.put(`${API_CONFIG.API_URL}/password/update`, passwords,{
             withCredentials: true // Cấu hình Axios để bao gồm cookie trong yêu cầu
           }, config)
 
@@ -211,7 +212,7 @@ export const forgotPassword = (email) => async (dispatch) => {
             }
         }
 
-        const { data } = await axios.post('http://localhost:4000/api/v1/password/forgot', email, config)
+        const { data } = await axios.post(`${API_CONFIG.API_URL}/password/forgot`, email, config)
 
         dispatch({
             type: FORGOT_PASSWORD_SUCCESS,
@@ -238,7 +239,7 @@ export const resetPassword = (token, passwords) => async (dispatch) => {
             }
         }
 
-        const { data } = await axios.put(`http://localhost:4000/api/v1/password/reset/${token}`, passwords, config)
+        const { data } = await axios.put(`${API_CONFIG.API_URL}/password/reset/${token}`, passwords, config)
 
         dispatch({
             type: NEW_PASSWORD_SUCCESS,
@@ -256,7 +257,7 @@ export const resetPassword = (token, passwords) => async (dispatch) => {
 // Logout user
 export const logout = () => async (dispatch) => {
     try {
-        await axios.get('http://localhost:4000/api/v1/logout')
+        await axios.get(`${API_CONFIG.API_URL}/logout`)
         document.cookie="token="
         dispatch({
             type: LOGOUT_SUCCESS,
@@ -276,7 +277,7 @@ export const allUsers = () => async (dispatch) => {
 
         dispatch({ type: ALL_USERS_REQUEST })
 
-        const { data } = await axios.get('http://localhost:4000/api/v1/admin/users',	{
+        const { data } = await axios.get(`${API_CONFIG.API_URL}/admin/users`,	{
             withCredentials: true // Cấu hình Axios để bao gồm cookie trong yêu cầu
           })
 
@@ -305,7 +306,7 @@ export const updateUser = (id, userData) => async (dispatch) => {
             }
         }
 
-        const { data } = await axios.put(`http://localhost:4000/api/v1/admin/user/${id}`, userData,	{
+        const { data } = await axios.put(`${API_CONFIG.API_URL}/admin/user/${id}`, userData,	{
             withCredentials: true // Cấu hình Axios để bao gồm cookie trong yêu cầu
           }, config)
 
@@ -329,7 +330,7 @@ export const getUserDetails = (id) => async (dispatch) => {
         dispatch({ type: USER_DETAILS_REQUEST })
 
 
-        const { data } = await axios.get(`http://localhost:4000/api/v1/admin/user/${id}`,	{
+        const { data } = await axios.get(`${API_CONFIG.API_URL}/admin/user/${id}`,	{
             withCredentials: true // Cấu hình Axios để bao gồm cookie trong yêu cầu
           },)
 
@@ -352,7 +353,7 @@ export const deleteUser = (id) => async (dispatch) => {
 
         dispatch({ type: DELETE_USER_REQUEST })
 
-        const { data } = await axios.delete(`http://localhost:4000/api/v1/admin/user/${id}`,	{
+        const { data } = await axios.delete(`${API_CONFIG.API_URL}/admin/user/${id}`,	{
             withCredentials: true // Cấu hình Axios để bao gồm cookie trong yêu cầu
           },)
 

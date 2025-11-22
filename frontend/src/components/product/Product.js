@@ -1,11 +1,11 @@
 import React from 'react';
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Card, CardContent, CardMedia, Rating, Stack, Typography } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { AddShoppingCart, VisibilityOutlined } from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import {useParams}  from "react-router-dom"
+import { useParams } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux";
 import { addItemToCart } from "../../actions/cartActions";
 import {
@@ -25,9 +25,10 @@ const Product = ({ product }) => {
   const [quantity, setQuantity] = useState(1);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  const goToProduct = ()=>{
-      navigate(`/product/${product._id}`)
+
+  const goToProduct = () => {
+    window.scrollTo(0, 0);
+    navigate(`/product/${product._id}`)
   }
 
   const addToCart = (id) => {
@@ -36,21 +37,20 @@ const Product = ({ product }) => {
   };
 
   return (
-    <Card 
-      className='product-card'  
-      sx={{ 
+    <Card
+      className='product-card'
+      sx={{
         position: 'relative',
         transition: 'transform 0.2s ease-in-out',
-        '&:hover': { 
+        '&:hover': {
           boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
           transform: 'scale(1.05)'
-        } 
+        }
       }}
     >
 
-      
       <Box width="174px" margin="0 auto" height="174px" marginTop="24px">
-        <Link to={`/product/${product._id}`} >
+        <Link to={`/product/${product._id}`} onClick={() => window.scrollTo(0, 0)}>
           <CardMedia
             sx={{ padding: "16px", height: '174px' }}
             component="img"
@@ -62,62 +62,62 @@ const Product = ({ product }) => {
       </Box>
 
       <CardContent>
-        <Link to={`/product/${product._id}`}>
+        <Link to={`/product/${product._id}`} onClick={() => window.scrollTo(0, 0)}>
           <Typography className='product-name' gutterBottom variant="h6" fontSize={16} fontWeight={600}>
             {product.name}
           </Typography>
         </Link>
 
-        { product.salePrice ? (
+        {product.salePrice ? (
           <Stack direction="row" className='product-special-price'>
             <Typography className='price' variant="h6" mr={3} fontSize={4}>
               {product.salePrice}đ
             </Typography>
 
-            <Typography 
+            <Typography
               top={10}
               right={10}
-              position="absolute" 
-              className='discount-percent' 
+              position="absolute"
+              className='discount-percent'
               variant='h6' fontSize={14}>
-              {product.salePrice ? <> {Math.round((product.salePrice/product.price)*100)}%</> : <> 0%</>}
+              {product.salePrice ? <> {Math.round((product.salePrice / product.price) * 100)}%</> : <> 0%</>}
             </Typography>
-            
+
             <Typography className='product-old-price' variant="body2">
-            {Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
-            </Typography>
-          </Stack>
-         ) : (
-          
-            <Typography className='price' variant="h6" mr={3} fontSize={4} fontWeight={500}>
               {Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
             </Typography>
-        
-         )
+          </Stack>
+        ) : (
+
+          <Typography className='price' variant="h6" mr={3} fontSize={4} fontWeight={500}>
+            {Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+          </Typography>
+
+        )
         }
 
 
         <Stack direction="row" className='ratting-sold'>
           {(product.ratings && product.ratings) > 0 ? (
             <>
-            <Rating
-              className='rating-custom'
-              size="small"
-              name="simple-controlled"
-              value={product.ratings}
-              onChange={(event, newValue) => {
-                setValue(newValue);
-              }}
-            />
-            <Box component="div" className='sold-container'>
-              <Typography component="div" className='sold-qty-num' fontSize="12px">
-                <Typography component="span" fontSize="13px" mr={0.5}>
-                  | Đã bán
+              <Rating
+                className='rating-custom'
+                size="small"
+                name="simple-controlled"
+                value={product.ratings}
+                onChange={(event, newValue) => {
+                  setValue(newValue);
+                }}
+              />
+              <Box component="div" className='sold-container'>
+                <Typography component="div" className='sold-qty-num' fontSize="12px">
+                  <Typography component="span" fontSize="13px" mr={0.5}>
+                    | Đã bán
+                  </Typography>
+                  {product.soldQty}
                 </Typography>
-                {product.soldQty}
-              </Typography>
-            </Box>
-          </>
+              </Box>
+            </>
           ) : (
             <Box component="div" className='sold-container'>
               <Typography component="div" className='sold-qty-num' fontSize="12px">
@@ -131,25 +131,25 @@ const Product = ({ product }) => {
         </Stack>
 
         {/* StackButton sử dụng position absolute */}
-        <Stack 
-          direction="row" 
-          spacing={4} 
+        <Stack
+          direction="row"
+          spacing={4}
           className='stack-button'
-          
+
         >
-          {showAlert && ( 
-        <Alert 
-          sx={{position:"absolute"}}
-          icon={<CheckIcon fontSize="inherit" />} 
-          severity="success"
-         
-        >
-          Đã thêm vào giỏ hàng
-        </Alert>
-      )}
+          {showAlert && (
+            <Alert
+              sx={{ position: "absolute" }}
+              icon={<CheckIcon fontSize="inherit" />}
+              severity="success"
+
+            >
+              Đã thêm vào giỏ hàng
+            </Alert>
+          )}
 
           <IconButton color="primary" aria-label="add to wishlist cart"
-            
+
             onClick={() => addToCart(product._id)}
           >
             {showAlert ? <></> : <AddShoppingCart />}
@@ -158,7 +158,7 @@ const Product = ({ product }) => {
           <IconButton color="primary" aria-label="add to shopping cart"
             onClick={goToProduct}
           >
-            {showAlert ? <></> : <VisibilityOutlined/>}
+            {showAlert ? <></> : <VisibilityOutlined />}
           </IconButton>
         </Stack>
       </CardContent>

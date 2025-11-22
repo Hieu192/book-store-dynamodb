@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import API_CONFIG from '../../config/config';
 import { Grid, Typography, Box, CircularProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
@@ -10,24 +11,41 @@ const BestSellers = ({ limit = 10, category = null }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    const abortController = new AbortController();
+
     const fetchBestSellers = async () => {
       try {
-        setLoading(true);
+        if (isMounted) setLoading(true);
         const categoryParam = category ? `&category=${category}` : '';
         const { data } = await axios.get(
-          `http://localhost:4000/api/v1/products/bestsellers?limit=${limit}${categoryParam}`,
-          { withCredentials: true }
+          `${API_CONFIG.API_URL}/products/bestsellers?limit=${limit}${categoryParam}`,
+          {
+            withCredentials: true,
+            signal: abortController.signal
+          }
         );
-        setProducts(data.products || []);
+        if (isMounted) {
+          setProducts(data.products || []);
+        }
       } catch (error) {
-        console.error('Error fetching best sellers:', error);
-        setProducts([]);
+        if (error.name !== 'CanceledError' && isMounted) {
+          console.error('Error fetching best sellers:', error);
+          setProducts([]);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchBestSellers();
+
+    return () => {
+      isMounted = false;
+      abortController.abort();
+    };
   }, [limit, category]);
 
   if (loading) {
@@ -44,9 +62,9 @@ const BestSellers = ({ limit = 10, category = null }) => {
 
   return (
     <Box my={6}>
-      <Typography 
-        variant="h4" 
-        fontWeight={700} 
+      <Typography
+        variant="h4"
+        fontWeight={700}
         mb={3}
         textAlign="center"
         sx={{ color: '#1976d2' }}

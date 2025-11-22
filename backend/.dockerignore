@@ -1,0 +1,54 @@
+# Dependencies (sẽ install trong Docker)
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Testing (không cần trong production)
+tests
+coverage
+*.test.js
+*.spec.js
+jest.config.js
+
+# Development files
+.env
+.env.*
+*.log
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+ARCHITECTURE.md
+DYNAMODB_DESIGN.md
+*.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist
+build
+
+# Misc
+.dockerignore
+Dockerfile
+Procfile
+vercel.json
+
+# Data files (không cần trong image)
+data/
+temp_*.json

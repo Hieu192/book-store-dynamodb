@@ -1,13 +1,28 @@
-# TÓM TẮT DỰ ÁN - HỆ THỐNG QUẢN LÝ SÁCH TRỰC TUYẾN
+# 🛍️ HỆ THỐNG QUẢN LÝ SÁCH TRỰC TUYẾN
 
-## 📋 TỔNG QUAN DỰ ÁN
+## 📋 TỔNG QUAN
 
-Đây là một ứng dụng web full-stack cho hệ thống quản lý và bán sách trực tuyến, được xây dựng với kiến trúc hiện đại và có khả năng mở rộng cao. **Hệ thống đã hoàn tất migration từ MongoDB sang DynamoDB với CloudFront CDN.**
+Ứng dụng web full-stack cho hệ thống quản lý và bán sách trực tuyến với kiến trúc production-ready trên AWS.
 
-### Công nghệ sử dụng
-- **Backend**: Node.js + Express.js
-- **Frontend**: React.js + Tailwind CSS
-- **Database**: AWS DynamoDB (Single-Table Design)
+### 🏗️ Kiến Trúc Production
+- **Frontend**: React.js + Tailwind CSS → S3 + CloudFront (CDN global)
+- **Backend**: Node.js + Express.js → ECS Fargate (Auto-scaling 1-4 tasks)
+- **WebSocket**: Real-time notifications → ALB (Sticky Sessions)
+- **Database**: AWS DynamoDB (Single-Table Design, On-Demand)
+- **Cache**: AWS ElastiCache Redis (Sessions, API cache)
+- **Storage**: AWS S3 (Uploads, Static files)
+- **Infrastructure**: Terraform (Infrastructure as Code)
+
+### 💰 Chi Phí Production
+- **Startup**: ~$95/month (traffic thấp)
+- **SME**: ~$125/month (traffic trung bình) ⭐ Khuyến nghị
+- **Enterprise**: ~$255/month (traffic cao)
+
+### 📚 Tài Liệu Quan Trọng
+- [FINAL-PRODUCTION-ARCHITECTURE.md](FINAL-PRODUCTION-ARCHITECTURE.md) - ⭐ Kiến trúc chính thức
+- [WEBSOCKET-DEPLOYMENT.md](WEBSOCKET-DEPLOYMENT.md) - ⭐ WebSocket deployment guide
+- [DEPLOYMENT-SUMMARY.md](DEPLOYMENT-SUMMARY.md) - Tổng kết deployment
+- [docker-tutorial/DEPLOY-GUIDE.md](docker-tutorial/DEPLOY-GUIDE.md) - Hướng dẫn deploy chi tiết
 - **CDN**: AWS CloudFront
 - **Storage**: AWS S3
 - **Testing**: Jest (185 tests, 85.47% coverage)
@@ -60,6 +75,36 @@
 - ✅ Tách biệt rõ ràng giữa các layer
 - ✅ Dễ test và maintain
 - ✅ Auto-scaling không giới hạn
+
+### Infrastructure Routing Logic
+- **Frontend (`/*`)**: CloudFront -> S3 Bucket (Static Files)
+- **Backend (`/api/*`)**: CloudFront -> ALB -> ECS Fargate (API)
+- **Lợi ích**: Chung domain (không CORS), bảo mật cao (Backend ẩn sau CDN).
+
+---
+
+## 🧠 QUYẾT ĐỊNH KIẾN TRÚC (INFRASTRUCTURE DECISIONS)
+
+### 1. Tại sao Backend dùng Docker (ECS Fargate)?
+- **Môi trường đồng nhất**: Đảm bảo code chạy trên server giống hệt trên máy local.
+- **Bảo mật**: Chạy với non-root user, hạn chế quyền truy cập hệ thống.
+- **Graceful Shutdown**: Xử lý tín hiệu tắt an toàn, không làm rớt request.
+- **Tối ưu**: Multi-stage build giảm kích thước image (<200MB).
+
+### 2. Tại sao Frontend KHÔNG dùng Docker?
+- **Chi phí**: Hosting file tĩnh trên S3 + CloudFront rẻ hơn nhiều so với chạy container 24/7 (~$4 vs ~$20/tháng).
+- **Hiệu năng**: CloudFront cache nội dung tại edge location, tốc độ tải trang cực nhanh.
+- **Scalability**: S3 không giới hạn băng thông và storage, không lo sập khi traffic tăng đột biến.
+
+### 3. Mô hình CloudFront Single Distribution
+Chúng tôi sử dụng **một** CloudFront distribution duy nhất cho cả Frontend và Backend:
+- `example.com/*` -> Trỏ về **S3 Bucket** (Frontend React App)
+- `example.com/api/*` -> Trỏ về **ALB** (Backend API)
+
+**Lợi ích:**
+- ✅ **Chung Domain**: Loại bỏ hoàn toàn lỗi CORS.
+- ✅ **SSL/TLS**: Quản lý chứng chỉ tập trung tại CloudFront.
+- ✅ **Bảo mật**: Backend ẩn sau CloudFront, không public trực tiếp ra internet.
 
 ---
 
@@ -239,38 +284,37 @@ GSI2: GSI2PK + GSI2SK (Status, Price, Stock filtering)
 
 ### Products API
 ```
-GET    /api/products              # Lấy danh sách sản phẩm
-GET    /api/products/:id          # Lấy chi tiết sản phẩm
-POST   /api/products              # Tạo sản phẩm mới (Admin)
-PUT    /api/products/:id          # Cập nhật sản phẩm (Admin)
-DELETE /api/products/:id          # Xóa sản phẩm (Admin)
-POST   /api/products/:id/reviews  # Thêm review
+GET    /api/v1/products              # Lấy danh sách sản phẩm
+GET    /api/v1/product/:id           # Lấy chi tiết sản phẩm
+POST   /api/v1/admin/product/new     # Tạo sản phẩm mới (Admin)
+PUT    /api/v1/admin/product/:id     # Cập nhật sản phẩm (Admin)
+DELETE /api/v1/admin/product/:id     # Xóa sản phẩm (Admin)
+PUT    /api/v1/review                # Thêm/Sửa review
 ```
 
 ### Users API
 ```
-POST   /api/users/register        # Đăng ký
-POST   /api/users/login           # Đăng nhập
-POST   /api/users/google          # Đăng nhập với Google OAuth
-GET    /api/users/profile         # Lấy profile
-PUT    /api/users/profile         # Cập nhật profile
-PUT    /api/users/password        # Đổi mật khẩu
+POST   /api/v1/register              # Đăng ký
+POST   /api/v1/login                 # Đăng nhập
+POST   /api/v1/loginWithGoogle       # Đăng nhập với Google OAuth
+GET    /api/v1/me                    # Lấy profile
+PUT    /api/v1/me/update             # Cập nhật profile
+PUT    /api/v1/password/update       # Đổi mật khẩu
 ```
 
 ### Orders API
 ```
-GET    /api/orders                # Lấy danh sách đơn hàng
-GET    /api/orders/:id            # Chi tiết đơn hàng
-POST   /api/orders                # Tạo đơn hàng
-PUT    /api/orders/:id            # Cập nhật đơn hàng (Admin)
+GET    /api/v1/orders/me             # Lấy danh sách đơn hàng của tôi
+GET    /api/v1/order/:id             # Chi tiết đơn hàng
+POST   /api/v1/order/new             # Tạo đơn hàng
+PUT    /api/v1/admin/order/:id       # Cập nhật đơn hàng (Admin)
 ```
 
 ### Categories API
 ```
-GET    /api/categories            # Lấy danh sách danh mục
-POST   /api/categories            # Tạo danh mục (Admin)
-PUT    /api/categories/:id        # Cập nhật danh mục (Admin)
-DELETE /api/categories/:id        # Xóa danh mục (Admin)
+GET    /api/v1/categories            # Lấy danh sách danh mục
+POST   /api/v1/admin/category/new    # Tạo danh mục (Admin)
+DELETE /api/v1/admin/category/:id    # Xóa danh mục (Admin)
 ```
 
 ---
@@ -278,14 +322,19 @@ DELETE /api/categories/:id        # Xóa danh mục (Admin)
 ## 🛠️ SETUP & DEPLOYMENT
 
 ### Local Development
+Để chạy dự án ở môi trường local:
+
 ```bash
-# Backend
+# 1. Khởi chạy Infrastructure (DB + Redis)
+# (Khuyến nghị tạo file docker-compose.yml để chạy bước này)
+
+# 2. Backend
 cd backend
 npm install
 cp .env.example .env
 npm run dev
 
-# Frontend
+# 3. Frontend
 cd frontend
 npm install
 npm start
@@ -312,12 +361,29 @@ PORT=4000
 NODE_ENV=production
 ```
 
-### Deployment (Current)
-- **Backend**: AWS Elastic Beanstalk / EC2
-- **Frontend**: Vercel / AWS S3 + CloudFront
-- **Database**: AWS DynamoDB (ap-southeast-1)
-- **CDN**: AWS CloudFront
-- **Storage**: AWS S3
+### Production Deployment
+
+Quy trình deploy được tự động hóa hoàn toàn bằng scripts:
+
+#### Bước 1: Provisioning Infrastructure (Terraform)
+Tạo toàn bộ hạ tầng AWS (VPC, ECS, RDS, S3, CloudFront...):
+```bash
+cd infrastructure/terraform
+terraform init
+terraform apply
+```
+
+#### Bước 2: Deploy Backend
+Build Docker image, push lên ECR và update ECS Service:
+```bash
+./scripts/deploy-backend.sh
+```
+
+#### Bước 3: Deploy Frontend
+Build React app, upload lên S3 và invalidate CloudFront cache:
+```bash
+./scripts/deploy-frontend.sh
+```
 
 ---
 
@@ -338,6 +404,10 @@ NODE_ENV=production
 - ✅ **Smart autocomplete with product suggestions**
 - ✅ **Real-time notifications via WebSocket**
 - ✅ **Auto-clear cart after successful order**
+- ✅ **Redis Caching Layer** (API & Session cache)
+- ✅ **Load Balancer (ALB)** setup
+- ✅ **Auto-scaling policies** (ECS Fargate)
+- ✅ **Monitoring & Alerting** (CloudWatch)
 - ✅ Frontend error handling
 - ✅ Scroll to top navigation
 - ✅ Comprehensive test coverage (85.47%)
@@ -345,21 +415,16 @@ NODE_ENV=production
 
 ### Kế hoạch tiếp theo 🎯
 1. **Performance Optimization**
-   - Implement Redis caching layer
    - DynamoDB DAX for microsecond latency
-   - API response compression
+   - API response compression (Gzip/Brotli)
 
 2. **Features mới**
    - Wishlist functionality
-   - Advanced filters (price range, ratings, stock)
    - Recommendation system
    - Order tracking with map
 
 3. **Scalability**
    - DynamoDB Global Tables (multi-region)
-   - Load balancer setup
-   - Auto-scaling policies
-   - Monitoring & alerting (CloudWatch)
 
 ---
 
@@ -414,6 +479,6 @@ NODE_ENV=production
 
 ---
 
-**Last Updated**: November 20, 2024
+**Last Updated**: November 22, 2025
 **Version**: 2.3.0
 **Status**: ✅ Production (DynamoDB + CloudFront + Google OAuth + i18n + Vietnamese Search + WebSocket)

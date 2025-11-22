@@ -33,6 +33,11 @@ const order = require("./routes/order");
 const category = require("./routes/category");
 const migration = require("./routes/migration");
 
+// Health check endpoint for ALB/Docker
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "healthy", timestamp: new Date().toISOString() });
+});
+
 //app.use("/",(req,res,next)=>{res.json({name:2})})
 app.use("/api/v1", products);
 app.use("/api/v1", auth);
