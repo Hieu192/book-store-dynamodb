@@ -271,31 +271,7 @@ resource "aws_lb_target_group" "backend" {
   }
 }
 
-resource "aws_lb_target_group" "frontend" {
-  name        = "${var.project_name}-frontend-tg"
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
-  target_type = "ip"
 
-  health_check {
-    enabled             = true
-    healthy_threshold   = 2
-    interval            = 30
-    matcher             = "200"
-    path                = "/health"
-    port                = "traffic-port"
-    protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 3
-  }
-
-  deregistration_delay = 30
-
-  tags = {
-    Name = "${var.project_name}-frontend-tg"
-  }
-}
 
 # ALB Listeners
 resource "aws_lb_listener" "http" {
@@ -322,8 +298,13 @@ resource "aws_lb_listener" "https" {
   certificate_arn   = aws_acm_certificate.main.arn
 
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend.arn
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "404: Not Found"
+      status_code  = "404"
+    }
   }
 }
 
@@ -407,22 +388,7 @@ resource "aws_ecr_repository" "backend" {
   }
 }
 
-resource "aws_ecr_repository" "frontend" {
-  name                 = "${var.project_name}/frontend"
-  image_tag_mutability = "MUTABLE"
 
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  encryption_configuration {
-    encryption_type = "AES256"
-  }
-
-  tags = {
-    Name = "${var.project_name}-frontend-ecr"
-  }
-}
 
 # ECR Lifecycle Policies
 resource "aws_ecr_lifecycle_policy" "backend" {
@@ -444,24 +410,7 @@ resource "aws_ecr_lifecycle_policy" "backend" {
   })
 }
 
-resource "aws_ecr_lifecycle_policy" "frontend" {
-  repository = aws_ecr_repository.frontend.name
 
-  policy = jsonencode({
-    rules = [{
-      rulePriority = 1
-      description  = "Keep last 10 images"
-      selection = {
-        tagStatus     = "any"
-        countType     = "imageCountMoreThan"
-        countNumber   = 10
-      }
-      action = {
-        type = "expire"
-      }
-    }]
-  })
-}
 
 # IAM Role for ECS Task Execution
 resource "aws_iam_role" "ecs_task_execution" {
@@ -532,14 +481,7 @@ resource "aws_cloudwatch_log_group" "backend" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "frontend" {
-  name              = "/ecs/${var.project_name}/frontend"
-  retention_in_days = 30
 
-  tags = {
-    Name = "${var.project_name}-frontend-logs"
-  }
-}
 
 # Data sources
 data "aws_availability_zones" "available" {
@@ -573,9 +515,7 @@ output "ecr_backend_url" {
   value = aws_ecr_repository.backend.repository_url
 }
 
-output "ecr_frontend_url" {
-  value = aws_ecr_repository.frontend.repository_url
-}
+
 
 output "ecs_cluster_name" {
   value = aws_ecs_cluster.main.name

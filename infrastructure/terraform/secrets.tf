@@ -72,7 +72,8 @@ resource "aws_iam_role_policy" "ecs_secrets" {
         aws_secretsmanager_secret.aws_access_key.arn,
         aws_secretsmanager_secret.aws_secret_key.arn,
         aws_secretsmanager_secret.s3_bucket.arn,
-        aws_secretsmanager_secret.cloudfront_url.arn
+        aws_secretsmanager_secret.cloudfront_url.arn,
+        aws_secretsmanager_secret.redis_auth_token.arn
       ]
     }]
   })
