@@ -104,7 +104,7 @@ cd frontend
 npm install
 
 # Build
-REACT_APP_API_URL=https://${CLOUDFRONT_DOMAIN}/api npm run build
+REACT_APP_API_URL=https://${ALB_DNS}/api npm run build
 
 # Upload to S3
 aws s3 sync build/ s3://${S3_BUCKET}/ \
@@ -132,15 +132,15 @@ cd ..
 
 print_step "✅ Frontend deployed to S3 + CloudFront"
 
-# Step 4: Wait for ECS service to be stable
-print_step "Step 4: Waiting for ECS service to be stable..."
+# Step 4: Wait for backend service to be stable
+print_step "Step 4: Waiting for backend service to be stable..."
 
 aws ecs wait services-stable \
   --cluster ${PROJECT_NAME}-cluster \
   --services ${PROJECT_NAME}-backend-service \
   --region ${AWS_REGION}
 
-print_step "✅ ECS service is stable"
+print_step "✅ Backend service is stable"
 
 # Step 5: Verify deployment
 print_step "Step 5: Verifying deployment..."
