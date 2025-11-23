@@ -58,37 +58,12 @@ resource "aws_elasticache_cluster" "redis" {
   # Auto minor version upgrade
   auto_minor_version_upgrade = true
 
-  # Encryption
-  at_rest_encryption_enabled = true
-  transit_encryption_enabled = true
-
-  # Auth token (password)
-  auth_token = random_password.redis_auth_token.result
+  # Note: Encryption và auth_token chỉ có trên Replication Group
+  # Để nâng cấp bảo mật, cần chuyển sang aws_elasticache_replication_group
 
   tags = {
     Name = "${var.project_name}-redis"
   }
-}
-
-# Random auth token for Redis
-resource "random_password" "redis_auth_token" {
-  length  = 32
-  special = false
-}
-
-# Store Redis auth token in Secrets Manager
-resource "aws_secretsmanager_secret" "redis_auth_token" {
-  name        = "${var.project_name}/redis-auth-token"
-  description = "Redis authentication token"
-
-  tags = {
-    Name = "${var.project_name}-redis-auth-token"
-  }
-}
-
-resource "aws_secretsmanager_secret_version" "redis_auth_token" {
-  secret_id     = aws_secretsmanager_secret.redis_auth_token.id
-  secret_string = random_password.redis_auth_token.result
 }
 
 # Outputs
@@ -100,10 +75,4 @@ output "redis_endpoint" {
 output "redis_port" {
   value       = aws_elasticache_cluster.redis.port
   description = "Redis port"
-}
-
-output "redis_auth_token_arn" {
-  value       = aws_secretsmanager_secret.redis_auth_token.arn
-  description = "ARN of Redis auth token secret"
-  sensitive   = true
 }

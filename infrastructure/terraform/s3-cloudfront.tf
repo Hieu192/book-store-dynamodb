@@ -86,7 +86,7 @@ resource "aws_cloudfront_distribution" "frontend" {
 
   # Origin 2: ALB (Backend API)
   origin {
-    domain_name = aws_lb.main.dns_name
+    domain_name = "api.anonymous.id.vn"
     origin_id   = "ALB-Backend"
 
     custom_origin_config {
@@ -167,7 +167,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   viewer_certificate {
     # cloudfront_default_certificate = true
     # Hoặc dùng ACM certificate:
-    acm_certificate_arn      = aws_acm_certificate.main.arn
+    acm_certificate_arn      = aws_acm_certificate.cloudfront.arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }

@@ -24,7 +24,8 @@ resource "aws_ecs_task_definition" "backend" {
       { name = "MIGRATION_PHASE", value = "DYNAMODB_ONLY" },
       { name = "FRONTEND_URL", value = "https://${aws_cloudfront_distribution.frontend.domain_name}" },
       { name = "REDIS_HOST", value = aws_elasticache_cluster.redis.cache_nodes[0].address },
-      { name = "REDIS_PORT", value = tostring(aws_elasticache_cluster.redis.port) }
+      { name = "REDIS_PORT", value = tostring(aws_elasticache_cluster.redis.port) },
+      { name = "REDIS_URL", value = "redis://${aws_elasticache_cluster.redis.cache_nodes[0].address}:${aws_elasticache_cluster.redis.port}" }
     ]
 
     secrets = [
@@ -33,8 +34,7 @@ resource "aws_ecs_task_definition" "backend" {
       { name = "AWS_ACCESS_KEY_ID", valueFrom = "${aws_secretsmanager_secret.aws_access_key.arn}" },
       { name = "AWS_SECRET_ACCESS_KEY", valueFrom = "${aws_secretsmanager_secret.aws_secret_key.arn}" },
       { name = "S3_BUCKET_NAME", valueFrom = "${aws_secretsmanager_secret.s3_bucket.arn}" },
-      { name = "CLOUDFRONT_URL", valueFrom = "${aws_secretsmanager_secret.cloudfront_url.arn}" },
-      { name = "REDIS_PASSWORD", valueFrom = "${aws_secretsmanager_secret.redis_auth_token.arn}" }
+      { name = "CLOUDFRONT_URL", valueFrom = "${aws_secretsmanager_secret.cloudfront_url.arn}" }
     ]
 
     logConfiguration = {
@@ -65,7 +65,7 @@ resource "aws_ecs_service" "backend" {
   name            = "${var.project_name}-backend-service"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.backend.arn
-  desired_count   = 1  # Bắt đầu với 1 task, auto-scale khi cần
+  desired_count   = 1
   launch_type     = "FARGATE"
 
   network_configuration {
@@ -78,11 +78,6 @@ resource "aws_ecs_service" "backend" {
     target_group_arn = aws_lb_target_group.backend.arn
     container_name   = "backend"
     container_port   = 4000
-  }
-
-  deployment_configuration {
-    maximum_percent         = 200
-    minimum_healthy_percent = 100
   }
 
   deployment_circuit_breaker {
@@ -98,6 +93,7 @@ resource "aws_ecs_service" "backend" {
 
   depends_on = [aws_lb_listener.https]
 }
+
 
 # Auto Scaling - Backend
 resource "aws_appautoscaling_target" "backend" {

@@ -101,10 +101,10 @@ print_step "Step 3: Building and deploying frontend..."
 cd frontend
 
 # Install dependencies
-npm install
+npm install --legacy-peer-deps
 
-# Build
-REACT_APP_API_URL=https://${ALB_DNS}/api npm run build
+# Build với API URL qua CloudFront (cùng domain, tránh CORS và SSL issues)
+REACT_APP_API_URL=https://anonymous.id.vn/api/v1 npm run build
 
 # Upload to S3
 aws s3 sync build/ s3://${S3_BUCKET}/ \

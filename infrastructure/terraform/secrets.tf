@@ -1,7 +1,7 @@
 # AWS Secrets Manager for sensitive data
 
 resource "aws_secretsmanager_secret" "db_uri" {
-  name        = "${var.project_name}/db-uri"
+  name        = "${var.project_name}/db-uri-v4"
   description = "MongoDB connection string"
 
   tags = {
@@ -10,7 +10,7 @@ resource "aws_secretsmanager_secret" "db_uri" {
 }
 
 resource "aws_secretsmanager_secret" "jwt_secret" {
-  name        = "${var.project_name}/jwt-secret"
+  name        = "${var.project_name}/jwt-secret-v4"
   description = "JWT secret key"
 
   tags = {
@@ -19,7 +19,7 @@ resource "aws_secretsmanager_secret" "jwt_secret" {
 }
 
 resource "aws_secretsmanager_secret" "aws_access_key" {
-  name        = "${var.project_name}/aws-access-key"
+  name        = "${var.project_name}/aws-access-key-v4"
   description = "AWS Access Key ID"
 
   tags = {
@@ -28,7 +28,7 @@ resource "aws_secretsmanager_secret" "aws_access_key" {
 }
 
 resource "aws_secretsmanager_secret" "aws_secret_key" {
-  name        = "${var.project_name}/aws-secret-key"
+  name        = "${var.project_name}/aws-secret-key-v4"
   description = "AWS Secret Access Key"
 
   tags = {
@@ -37,7 +37,7 @@ resource "aws_secretsmanager_secret" "aws_secret_key" {
 }
 
 resource "aws_secretsmanager_secret" "s3_bucket" {
-  name        = "${var.project_name}/s3-bucket"
+  name        = "${var.project_name}/s3-bucket-v4"
   description = "S3 bucket name"
 
   tags = {
@@ -46,7 +46,7 @@ resource "aws_secretsmanager_secret" "s3_bucket" {
 }
 
 resource "aws_secretsmanager_secret" "cloudfront_url" {
-  name        = "${var.project_name}/cloudfront-url"
+  name        = "${var.project_name}/cloudfront-url-v4"
   description = "CloudFront distribution URL"
 
   tags = {
@@ -72,8 +72,7 @@ resource "aws_iam_role_policy" "ecs_secrets" {
         aws_secretsmanager_secret.aws_access_key.arn,
         aws_secretsmanager_secret.aws_secret_key.arn,
         aws_secretsmanager_secret.s3_bucket.arn,
-        aws_secretsmanager_secret.cloudfront_url.arn,
-        aws_secretsmanager_secret.redis_auth_token.arn
+        aws_secretsmanager_secret.cloudfront_url.arn
       ]
     }]
   })

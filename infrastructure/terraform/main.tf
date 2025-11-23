@@ -16,9 +16,9 @@ terraform {
 
   # Store state in S3 (recommended for production)
   backend "s3" {
-    bucket         = "your-terraform-state-bucket"
+    bucket         = "bookstore-tf-state-hieu192"
     key            = "bookstore/terraform.tfstate"
-    region         = "ap-southeast-1"
+    region         = "us-east-1"  # Bucket location (có thể khác với infrastructure region)
     encrypt        = true
     dynamodb_table = "terraform-state-lock"
   }
@@ -156,25 +156,25 @@ data "aws_ec2_managed_prefix_list" "cloudfront" {
 # Security Groups
 resource "aws_security_group" "alb" {
   name        = "${var.project_name}-alb-sg"
-  description = "Security group for ALB (only CloudFront access)"
+  description = "Security group for ALB"
   vpc_id      = aws_vpc.main.id
 
   # HTTP (redirect to HTTPS)
   ingress {
-    from_port       = 80
-    to_port         = 80
-    protocol        = "tcp"
-    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
-    description     = "HTTP from CloudFront (redirect to HTTPS)"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTP from anywhere (redirect to HTTPS)"
   }
 
-  # HTTPS (chỉ từ CloudFront IPs)
+  # HTTPS
   ingress {
-    from_port       = 443
-    to_port         = 443
-    protocol        = "tcp"
-    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
-    description     = "HTTPS from CloudFront"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTPS from anywhere"
   }
 
   egress {
@@ -295,7 +295,7 @@ resource "aws_lb_listener" "https" {
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
-  certificate_arn   = aws_acm_certificate.main.arn
+  certificate_arn   = aws_acm_certificate.alb.arn
 
   default_action {
     type = "fixed-response"
@@ -358,22 +358,26 @@ resource "aws_ecs_cluster" "main" {
 }
 
 # ECS Cluster Capacity Providers
-resource "aws_ecs_cluster_capacity_providers" "main" {
-  cluster_name = aws_ecs_cluster.main.name
+# Tạm thời comment out vì cần Service Linked Role
+# Uncomment sau khi chạy lần đầu thành công
+# resource "aws_ecs_cluster_capacity_providers" "main" {
+#   cluster_name = aws_ecs_cluster.main.name
+#
+#   capacity_providers = ["FARGATE", "FARGATE_SPOT"]
+#
+#   default_capacity_provider_strategy {
+#     base              = 1
+#     weight            = 100
+#     capacity_provider = "FARGATE"
+#   }
+# }
 
-  capacity_providers = ["FARGATE", "FARGATE_SPOT"]
-
-  default_capacity_provider_strategy {
-    base              = 1
-    weight            = 100
-    capacity_provider = "FARGATE"
-  }
-}
 
 # ECR Repositories
 resource "aws_ecr_repository" "backend" {
   name                 = "${var.project_name}/backend"
   image_tag_mutability = "MUTABLE"
+  force_delete         = true  # Tự động xóa images khi destroy
 
   image_scanning_configuration {
     scan_on_push = true
@@ -489,22 +493,8 @@ data "aws_availability_zones" "available" {
 }
 
 # ACM Certificate (for HTTPS)
-resource "aws_acm_certificate" "main" {
-  domain_name       = "anonymous.id.vn"
-  validation_method = "DNS"
+# ACM Certificate đã move sang route53.tf
 
-  subject_alternative_names = [
-    "*.anonymous.id.vn"
-  ]
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  tags = {
-    Name = "${var.project_name}-cert"
-  }
-}
 
 # Outputs
 output "alb_dns_name" {
