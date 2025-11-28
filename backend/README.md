@@ -467,12 +467,11 @@ docker run -p 4000:4000 --env-file config/config.env bookstore-backend
 - [x] Multi-language support (i18n)
 - [x] Real-time notifications (WebSocket)
 - [x] Vietnamese search optimization
-- [ ] Implement GraphQL API
 - [ ] Advanced analytics dashboard
 - [ ] Mobile app (React Native)
 
 ---
 
 **Version**: 2.3.0  
-**Last Updated**: November 20, 2024  
+**Last Updated**: November 2025  
 **Maintained By**: Development Team

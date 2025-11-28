@@ -1,8 +1,9 @@
 const AWS = require('aws-sdk');
+const bcrypt = require('bcryptjs');
 
 /**
  * DynamoDB User Repository
- * Single-Table Design
+ * Single-Table Design with Password Hashing
  */
 class DynamoUserRepository {
   constructor() {
@@ -13,7 +14,7 @@ class DynamoUserRepository {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       convertEmptyValues: true
     });
-    
+
     this.tableName = 'BookStore';
   }
 
@@ -35,12 +36,54 @@ class DynamoUserRepository {
   }
 
   /**
-   * Transform MongoDB user to DynamoDB format
+   * Kiểm tra xem password đã được hash chưa
+   * Bcrypt hash luôn bắt đầu với $2a$, $2b$, hoặc $2y$ và có độ dài 60 ký tự
    */
-  _transformToDynamo(userData, id = null) {
+  _isPasswordHashed(password) {
+    if (!password) return false;
+    return /^\$2[aby]\$\d{2}\$/.test(password) && password.length === 60;
+  }
+
+  /**
+   * Hash password nếu chưa được hash
+   * @param {string} password - Plain text password hoặc hashed password
+   * @returns {Promise<string>} Hashed password
+   */
+  async _hashPasswordIfNeeded(password) {
+    if (!password) return undefined;
+
+    // Nếu đã hash rồi thì không hash lại
+    if (this._isPasswordHashed(password)) {
+      console.log('🔒 Password already hashed, skipping...');
+      return password;
+    }
+
+    // Hash password với bcrypt (10 salt rounds)
+    console.log('🔐 Hashing password for DynamoDB...');
+    return await bcrypt.hash(password, 10);
+  }
+
+  /**
+   * So sánh password (plain text) với hashed password
+   * @param {string} plainPassword - Password người dùng nhập
+   * @param {string} hashedPassword - Hashed password từ database
+   * @returns {Promise<boolean>}
+   */
+  async comparePassword(plainPassword, hashedPassword) {
+    return await bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  /**
+   * Transform MongoDB user to DynamoDB format
+   * QUAN TRỌNG: Hash password trước khi lưu
+   */
+  async _transformToDynamo(userData, id = null) {
     const userId = id ? String(id) : this._generateId();
     const timestamp = new Date().toISOString();
-    
+
+    // 🔐 SECURITY: Hash password trước khi lưu vào DynamoDB
+    const hashedPassword = await this._hashPasswordIfNeeded(userData.password);
+
     return {
       ...this._getUserKeys(userId),
       GSI1PK: `EMAIL#${userData.email}`,
@@ -51,7 +94,7 @@ class DynamoUserRepository {
       userId,
       name: userData.name,
       email: userData.email,
-      password: userData.password,
+      password: hashedPassword, // Lưu password đã được hash
       avatar: userData.avatar || {},
       role: userData.role || 'user',
       createdAt: userData.createdAt || timestamp,
@@ -64,7 +107,7 @@ class DynamoUserRepository {
    */
   _transformFromDynamo(item) {
     if (!item) return null;
-    
+
     return {
       _id: item.userId,
       name: item.name,
@@ -109,9 +152,10 @@ class DynamoUserRepository {
 
   /**
    * Create user
+   * 🔐 Password sẽ được hash tự động trong _transformToDynamo
    */
   async create(userData, id = null) {
-    const item = this._transformToDynamo(userData, id);
+    const item = await this._transformToDynamo(userData, id);
 
     const params = {
       TableName: this.tableName,
@@ -124,14 +168,20 @@ class DynamoUserRepository {
 
   /**
    * Update user
+   * 🔐 Password sẽ được hash tự động nếu có trong updateData
    */
   async update(id, updateData) {
     const keys = this._getUserKeys(id);
-    
+
+    // Hash password nếu đang update password
+    if (updateData.password) {
+      updateData.password = await this._hashPasswordIfNeeded(updateData.password);
+    }
+
     const updateExpressions = [];
     const expressionAttributeNames = {};
     const expressionAttributeValues = {};
-    
+
     Object.keys(updateData).forEach((key, index) => {
       const attrName = `#attr${index}`;
       const attrValue = `:val${index}`;
@@ -139,7 +189,7 @@ class DynamoUserRepository {
       expressionAttributeNames[attrName] = key;
       expressionAttributeValues[attrValue] = updateData[key];
     });
-    
+
     updateExpressions.push('#updatedAt = :updatedAt');
     expressionAttributeNames['#updatedAt'] = 'updatedAt';
     expressionAttributeValues[':updatedAt'] = new Date().toISOString();

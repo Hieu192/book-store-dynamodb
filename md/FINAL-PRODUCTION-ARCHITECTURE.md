@@ -1,4 +1,4 @@
-# 🏗️ KIẾN TRÚC PRODUCTION CUỐI CÙNG
+# 🏗️ KIẾN TRÚC PRODUCTION
 
 ## 📊 KIẾN TRÚC CHÍNH THỨC
 
@@ -38,7 +38,7 @@
 
 ---
 
-## 💰 CHI PHÍ CHÍNH THỨC (TIẾT KIỆM NHẤT)
+## 💰 CHI PHÍ
 
 ### Frontend (S3 + CloudFront):
 ```
@@ -566,7 +566,3 @@ Warning:
 - ✅ Cache: Redis (ElastiCache)
 - ✅ Production-ready
 
-**So với kiến trúc ban đầu ($184/month):**
-- Tiết kiệm: $59/month (32%)
-- Performance: Tốt hơn 5-10x
-- Scalability: Tốt hơn (DynamoDB unlimited)

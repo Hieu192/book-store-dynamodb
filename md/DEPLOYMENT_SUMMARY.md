@@ -3,7 +3,6 @@
 **Project**: Bookstore E-commerce Platform  
 **Domain**: https://anonymous.id.vn  
 **Date**: 2025-11-23  
-**Status**: ✅ **HOÀN THÀNH VÀ HOẠT ĐỘNG**
 
 ---
 
@@ -388,4 +387,3 @@ curl https://anonymous.id.vn/api/v1/products
 
 ---
 
-*For support or updates, refer to the project repository.*
