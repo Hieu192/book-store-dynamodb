@@ -15,21 +15,16 @@
 
 ![alt text](md/image.png)
 
-### 📚 Tài Liệu Quan Trọng
-- [FINAL-PRODUCTION-ARCHITECTURE.md](FINAL-PRODUCTION-ARCHITECTURE.md) - ⭐ Kiến trúc chính thức
-- [WEBSOCKET-DEPLOYMENT.md](WEBSOCKET-DEPLOYMENT.md) - ⭐ WebSocket deployment guide
-- [DEPLOYMENT-SUMMARY.md](DEPLOYMENT-SUMMARY.md) - Tổng kết deployment
-- [docker-tutorial/DEPLOY-GUIDE.md](docker-tutorial/DEPLOY-GUIDE.md) - Hướng dẫn deploy chi tiết
-- **CDN**: AWS CloudFront
-- **Storage**: AWS S3
-- **Testing**: Jest (185 tests, 85.47% coverage)
-- **Authentication**: JWT
+### 📚 Tài Liệu
+
 
 ---
 
 ## 🏗️ KIẾN TRÚC HỆ THỐNG
 
 ### Backend Architecture (Clean Architecture)
+
+![alt text](md/backend/image.png)
 
 ```
 ┌─────────────────────────────────────────┐
@@ -72,7 +67,7 @@
 
 ---
 
-## 🧠 QUYẾT ĐỊNH KIẾN TRÚC (INFRASTRUCTURE DECISIONS)
+<!-- ## 🧠 QUYẾT ĐỊNH KIẾN TRÚC (INFRASTRUCTURE DECISIONS)
 
 ### 1. Tại sao Backend dùng Docker (ECS Fargate)?
 - **Môi trường đồng nhất**: Đảm bảo code chạy trên server giống hệt trên máy local.
@@ -93,7 +88,7 @@ Chúng tôi sử dụng **một** CloudFront distribution duy nhất cho cả Fr
 **Lợi ích:**
 - ✅ **Chung Domain**: Loại bỏ hoàn toàn lỗi CORS.
 - ✅ **SSL/TLS**: Quản lý chứng chỉ tập trung tại CloudFront.
-- ✅ **Bảo mật**: Backend ẩn sau CloudFront, không public trực tiếp ra internet.
+- ✅ **Bảo mật**: Backend ẩn sau CloudFront, không public trực tiếp ra internet. -->
 
 ---
 
@@ -219,7 +214,7 @@ npm run perf:compare     # So sánh với baseline
 
 ## 💾 DATABASE DESIGN
 
-### DynamoDB (Production - Đang sử dụng)
+### DynamoDB (Production)
 
 **Single-Table Design với 2 GSIs:**
 
@@ -317,7 +312,6 @@ DELETE /api/v1/admin/category/:id    # Xóa danh mục (Admin)
 
 ```bash
 # 1. Khởi chạy Infrastructure (DB + Redis)
-# (Khuyến nghị tạo file docker-compose.yml để chạy bước này)
 
 # 2. Backend
 cd backend
@@ -379,4 +373,4 @@ Build React app, upload lên S3 và invalidate CloudFront cache:
 
 **Last Updated**: November 22, 2025
 **Version**: 2.3.0
-**Status**: ✅ Production (DynamoDB + CloudFront + Google OAuth + i18n + Vietnamese Search + WebSocket)
+**Status**:  Production (DynamoDB + CloudFront + Google OAuth + i18n + Vietnamese Search + WebSocket)
