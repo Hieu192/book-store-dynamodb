@@ -1,19 +1,16 @@
 const request = require('supertest');
 const app = require('../../../app');
 const userService = require('../../../services/UserService');
-const { createTestUser, cleanupDatabase, extractCookie } = require('../../helpers/testHelpers');
+const { createTestUser, extractCookie } = require('../../helpers/testHelpers');
 
 describe('Authentication Integration Tests', () => {
 
-  beforeEach(async () => {
-    await cleanupDatabase();
-  });
-
   describe('POST /api/v1/register', () => {
     it('should register a new user successfully', async () => {
+      const uniqueEmail = `test_${Date.now()}@example.com`;
       const userData = {
         name: 'John Doe',
-        email: 'john@example.com',
+        email: uniqueEmail,
         password: 'password123',
         avatar: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
       };
@@ -33,7 +30,7 @@ describe('Authentication Integration Tests', () => {
       const cookie = extractCookie(response);
       expect(cookie).toBeTruthy();
 
-      // Verify user via API (not direct DB query)
+      // Verify user via service
       const userId = response.body.user.id || response.body.user._id;
       const user = await userService.getUser(userId);
       expect(user).toBeTruthy();
@@ -42,21 +39,31 @@ describe('Authentication Integration Tests', () => {
     });
 
     it('should not register user with duplicate email', async () => {
-      await createTestUser({ email: 'duplicate@example.com' });
+      // Create unique email for this test
+      const duplicateEmail = `duplicate_${Date.now()}@example.com`;
 
-      const userData = {
-        name: 'Another User',
-        email: 'duplicate@example.com',
-        password: 'password123',
-        avatar: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-      };
+      // First registration
+      await request(app)
+        .post('/api/v1/register')
+        .send({
+          name: 'First User',
+          email: duplicateEmail,
+          password: 'password123'
+        })
+        .expect(200);
 
+      // Second registration with same email - should fail
       const response = await request(app)
         .post('/api/v1/register')
-        .send(userData)
+        .send({
+          name: 'Second User',
+          email: duplicateEmail,
+          password: 'password456'
+        })
         .expect(500);
 
       expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('email');
     });
 
     it('should not register user without required fields', async () => {
@@ -76,22 +83,27 @@ describe('Authentication Integration Tests', () => {
 
   describe('POST /api/v1/login', () => {
     it('should login user with correct credentials', async () => {
-      // Create user first
-      const user = await createTestUser({
-        email: 'login@example.com',
-        password: 'password123'
-      });
+      // Register user first with unique email
+      const uniqueEmail = `login_${Date.now()}@example.com`;
+      await request(app)
+        .post('/api/v1/register')
+        .send({
+          name: 'Test User',
+          email: uniqueEmail,
+          password: 'password123'
+        });
 
+      // Login with created user
       const response = await request(app)
         .post('/api/v1/login')
         .send({
-          email: 'login@example.com',
+          email: uniqueEmail,
           password: 'password123'
         })
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.user).toHaveProperty('email', 'login@example.com');
+      expect(response.body.user).toHaveProperty('email', uniqueEmail);
       expect(response.body).toHaveProperty('token');
 
       // Check cookie is set
@@ -100,15 +112,22 @@ describe('Authentication Integration Tests', () => {
     });
 
     it('should not login with incorrect password', async () => {
-      await createTestUser({
-        email: 'test@example.com',
-        password: 'correctpassword'
-      });
+      const uniqueEmail = `test_${Date.now()}@example.com`;
 
+      // Register user
+      await request(app)
+        .post('/api/v1/register')
+        .send({
+          name: 'Test User',
+          email: uniqueEmail,
+          password: 'correctpassword'
+        });
+
+      // Try login with wrong password
       const response = await request(app)
         .post('/api/v1/login')
         .send({
-          email: 'test@example.com',
+          email: uniqueEmail,
           password: 'wrongpassword'
         })
         .expect(401);
@@ -163,7 +182,7 @@ describe('Authentication Integration Tests', () => {
 
   describe('GET /api/v1/me', () => {
     it('should get current user profile', async () => {
-      const user = await createTestUser({ email: 'profile@example.com' });
+      const user = await createTestUser();
       const token = user.getJwtToken();
 
       const response = await request(app)
@@ -172,7 +191,7 @@ describe('Authentication Integration Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.user).toHaveProperty('email', 'profile@example.com');
+      expect(response.body.user).toHaveProperty('email', user.email);
       expect(response.body.user).toHaveProperty('name', user.name);
     });
 
@@ -188,9 +207,19 @@ describe('Authentication Integration Tests', () => {
 
   describe('PUT /api/v1/password/update', () => {
     it('should update password successfully', async () => {
-      const user = await createTestUser({ password: 'oldpassword123' });
-      const token = user.getJwtToken();
+      // Register user with known password
+      const uniqueEmail = `pwtest_${Date.now()}@example.com`;
+      const registerResponse = await request(app)
+        .post('/api/v1/register')
+        .send({
+          name: 'Password Test User',
+          email: uniqueEmail,
+          password: 'oldpassword123'
+        });
 
+      const token = registerResponse.body.token;
+
+      // Update password
       const response = await request(app)
         .put('/api/v1/password/update')
         .set('Cookie', [`token=${token}`])
@@ -206,16 +235,27 @@ describe('Authentication Integration Tests', () => {
       const loginResponse = await request(app)
         .post('/api/v1/login')
         .send({
-          email: user.email,
+          email: uniqueEmail,
           password: 'newpassword123'
         })
         .expect(200);
 
       expect(loginResponse.body.success).toBe(true);
+
+      // Verify cannot login with old password
+      const oldLoginResponse = await request(app)
+        .post('/api/v1/login')
+        .send({
+          email: uniqueEmail,
+          password: 'oldpassword123'
+        })
+        .expect(401);
+
+      expect(oldLoginResponse.body.success).toBe(false);
     });
 
     it('should not update password with incorrect old password', async () => {
-      const user = await createTestUser({ password: 'correctpassword' });
+      const user = await createTestUser();
       const token = user.getJwtToken();
 
       const response = await request(app)
@@ -233,49 +273,54 @@ describe('Authentication Integration Tests', () => {
 
   describe('PUT /api/v1/me/update', () => {
     it('should update user profile successfully', async () => {
-      const user = await createTestUser({
-        name: 'Old Name',
-        email: 'old@example.com'
-      });
+      const user = await createTestUser();
       const token = user.getJwtToken();
+      const newName = `Updated Name ${Date.now()}`;
+      const newEmail = `updated_${Date.now()}@example.com`;
 
       const response = await request(app)
         .put('/api/v1/me/update')
         .set('Cookie', [`token=${token}`])
         .send({
-          name: 'New Name',
-          email: 'new@example.com',
+          name: newName,
+          email: newEmail,
           avatar: ''
         })
         .expect(200);
 
       expect(response.body.success).toBe(true);
 
-      // Verify update via API
+      // Verify update via GET /api/v1/me
       const profileResponse = await request(app)
         .get('/api/v1/me')
         .set('Cookie', [`token=${token}`])
         .expect(200);
 
-      expect(profileResponse.body.user.name).toBe('New Name');
-      expect(profileResponse.body.user.email).toBe('new@example.com');
+      expect(profileResponse.body.user.name).toBe(newName);
+      expect(profileResponse.body.user.email).toBe(newEmail);
     });
   });
 
   describe('POST /api/v1/password/forgot', () => {
     it('should send password reset email', async () => {
-      const user = await createTestUser({ email: 'forgot@example.com' });
+      const uniqueEmail = `forgot_${Date.now()}@example.com`;
+
+      // Register user first
+      await request(app)
+        .post('/api/v1/register')
+        .send({
+          name: 'Forgot Password User',
+          email: uniqueEmail,
+          password: 'password123'
+        });
 
       const response = await request(app)
         .post('/api/v1/password/forgot')
-        .send({ email: 'forgot@example.com' })
+        .send({ email: uniqueEmail })
         .expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.message).toContain('Email sent');
-
-      // Note: Cannot verify resetPasswordToken in DynamoDB easily
-      // The email mock confirms the functionality works
     });
 
     it('should return error for non-existent email', async () => {

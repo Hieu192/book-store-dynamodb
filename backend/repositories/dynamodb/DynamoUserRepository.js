@@ -110,6 +110,7 @@ class DynamoUserRepository {
 
     return {
       _id: item.userId,
+      id: item.userId, // Add id for compatibility with refactored controllers
       name: item.name,
       email: item.email,
       password: item.password,
@@ -153,8 +154,17 @@ class DynamoUserRepository {
   /**
    * Create user
    * 🔐 Password sẽ được hash tự động trong _transformToDynamo
+   * ✅ Check duplicate email
    */
   async create(userData, id = null) {
+    // Check if email already exists
+    const existingUser = await this.findByEmail(userData.email);
+    if (existingUser) {
+      const error = new Error('E11000 duplicate key error collection: User email already exists');
+      error.code = 11000; // MongoDB duplicate error code for compatibility
+      throw error;
+    }
+
     const item = await this._transformToDynamo(userData, id);
 
     const params = {
