@@ -6,7 +6,7 @@
 
 ### 🏗️ Kiến Trúc Production
 - **Frontend**: React.js + Tailwind CSS → S3 + CloudFront (CDN global)
-- **Backend**: Node.js + Express.js → ECS Fargate (Auto-scaling 1-4 tasks)
+- **Backend**: Node.js + Express.js → ECS Fargate (Auto-scaling 1-4 tasks), Lambda (resize image)
 - **WebSocket**: Real-time notifications → ALB (Sticky Sessions)
 - **Database**: AWS DynamoDB (Single-Table Design, On-Demand)
 - **Cache**: AWS ElastiCache Redis (Sessions, API cache)
@@ -14,11 +14,6 @@
 - **Infrastructure**: Terraform (Infrastructure as Code)
 
 ![alt text](md/image.png)
-
-### 💰 Chi Phí Production
-- **Startup**: ~$95/month (traffic thấp)
-- **SME**: ~$125/month (traffic trung bình) ⭐ Khuyến nghị
-- **Enterprise**: ~$255/month (traffic cao)
 
 ### 📚 Tài Liệu Quan Trọng
 - [FINAL-PRODUCTION-ARCHITECTURE.md](FINAL-PRODUCTION-ARCHITECTURE.md) - ⭐ Kiến trúc chính thức
@@ -70,14 +65,6 @@
         └─────────────┘
 ```
 
-**Ưu điểm kiến trúc:**
-- ✅ Đã hoàn tất migration sang DynamoDB
-- ✅ Performance cải thiện 75-85%
-- ✅ CloudFront CDN cho image delivery
-- ✅ Tách biệt rõ ràng giữa các layer
-- ✅ Dễ test và maintain
-- ✅ Auto-scaling không giới hạn
-
 ### Infrastructure Routing Logic
 - **Frontend (`/*`)**: CloudFront -> S3 Bucket (Static Files)
 - **Backend (`/api/*`)**: CloudFront -> ALB -> ECS Fargate (API)
@@ -94,7 +81,7 @@
 - **Tối ưu**: Multi-stage build giảm kích thước image (<200MB).
 
 ### 2. Tại sao Frontend KHÔNG dùng Docker?
-- **Chi phí**: Hosting file tĩnh trên S3 + CloudFront rẻ hơn nhiều so với chạy container 24/7 (~$4 vs ~$20/tháng).
+- **Chi phí**: Hosting file tĩnh trên S3 + CloudFront rẻ hơn nhiều so với chạy container 24/7 
 - **Hiệu năng**: CloudFront cache nội dung tại edge location, tốc độ tải trang cực nhanh.
 - **Scalability**: S3 không giới hạn băng thông và storage, không lo sập khi traffic tăng đột biến.
 
@@ -159,6 +146,8 @@ frontend/
 - ✅ Upload và quản lý hình ảnh (S3 + CloudFront)
 - ✅ Quản lý tồn kho
 - ✅ Đánh giá và review sản phẩm
+- ✅ Hệ thống đề xuất sản phẩm
+- ✅ Cache API
 
 ### 2. Quản lý Người dùng (Users)
 - ✅ Đăng ký và đăng nhập
@@ -386,65 +375,6 @@ Build React app, upload lên S3 và invalidate CloudFront cache:
 ```bash
 ./scripts/deploy-frontend.sh
 ```
-
----
-
-## 📈 ROADMAP & IMPROVEMENTS
-
-### Đã hoàn thành ✅
-- ✅ Clean Architecture implementation
-- ✅ Repository Pattern
-- ✅ Service Layer
-- ✅ Performance testing suite
-- ✅ DynamoDB design & implementation
-- ✅ **Migration từ MongoDB sang DynamoDB**
-- ✅ **CloudFront CDN integration**
-- ✅ **S3 image storage**
-- ✅ **Google OAuth 2.0 authentication**
-- ✅ **Multi-language support (Vietnamese & English)**
-- ✅ **Vietnamese search optimization (có dấu & không dấu)**
-- ✅ **Smart autocomplete with product suggestions**
-- ✅ **Real-time notifications via WebSocket**
-- ✅ **Auto-clear cart after successful order**
-- ✅ **Redis Caching Layer** (API & Session cache)
-- ✅ **Load Balancer (ALB)** setup
-- ✅ **Auto-scaling policies** (ECS Fargate)
-- ✅ **Monitoring & Alerting** (CloudWatch)
-- ✅ Frontend error handling
-- ✅ Scroll to top navigation
-- ✅ Comprehensive test coverage (85.47%)
-- ✅ Documentation cleanup
-
-### Kế hoạch tiếp theo 🎯
-1. **Performance Optimization**
-   - DynamoDB DAX for microsecond latency
-   - API response compression (Gzip/Brotli)
-
-2. **Features mới**
-   - Wishlist functionality
-   - Recommendation system
-   - Order tracking with map
-
-3. **Scalability**
-   - DynamoDB Global Tables (multi-region)
-
----
-
-## 👥 TEAM & CONTRIBUTION
-
-### Development Standards
-- Clean Code principles
-- SOLID principles
-- Repository Pattern
-- Service Layer Pattern
-- Comprehensive testing
-- Documentation first
-
-### Git Workflow
-- Feature branches
-- Pull requests
-- Code review required
-- CI/CD pipeline ready
 
 
 **Last Updated**: November 22, 2025
