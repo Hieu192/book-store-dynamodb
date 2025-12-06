@@ -1,9 +1,16 @@
+// Import Services (singleton instances)
+const userService = require('../../services/UserService');
+const productService = require('../../services/ProductService');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+// Import MongoDB models cho cleanup (vẫn cần vì có thể có data cũ)
 const User = require('../../models/user');
 const Product = require('../../models/product');
 const Order = require('../../models/order');
 const Category = require('../../models/category');
 
-// Helper to create test user
+// Helper to create test user (works with both MongoDB & DynamoDB)
 const createTestUser = async (userData = {}) => {
   const defaultUser = {
     name: 'Test User',
@@ -16,7 +23,20 @@ const createTestUser = async (userData = {}) => {
     role: 'user'
   };
 
-  const user = await User.create({ ...defaultUser, ...userData });
+  // Use UserService (supports migration phases)
+  const user = await userService.createUser({ ...defaultUser, ...userData });
+
+  // Add helper methods to user object
+  user.getJwtToken = function () {
+    return jwt.sign({ id: user.id || user._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_TIME
+    });
+  };
+
+  user.comparePassword = async function (enteredPassword) {
+    return await bcrypt.compare(enteredPassword, user.password);
+  };
+
   return user;
 };
 
@@ -25,7 +45,7 @@ const createAdminUser = async (userData = {}) => {
   return createTestUser({ ...userData, role: 'admin' });
 };
 
-// Helper to create test product
+// Helper to create test product (works with both MongoDB & DynamoDB)
 const createTestProduct = async (userId, productData = {}) => {
   const defaultProduct = {
     name: 'Test Product',
@@ -44,11 +64,12 @@ const createTestProduct = async (userId, productData = {}) => {
     user: userId
   };
 
-  const product = await Product.create({ ...defaultProduct, ...productData });
+  // Use ProductService (supports migration phases)
+  const product = await productService.createProduct({ ...defaultProduct, ...productData });
   return product;
 };
 
-// Helper to create test category
+// Helper to create test category (still uses MongoDB model - can update later)
 const createTestCategory = async (categoryData = {}) => {
   const defaultCategory = {
     name: 'Test Category',
@@ -62,7 +83,7 @@ const createTestCategory = async (categoryData = {}) => {
   return category;
 };
 
-// Helper to create test order
+// Helper to create test order (still uses MongoDB model - can update later)
 const createTestOrder = async (userId, orderData = {}) => {
   const defaultOrder = {
     shippingInfo: {
@@ -98,25 +119,42 @@ const createTestOrder = async (userId, orderData = {}) => {
 
 // Helper to get JWT token from user
 const getAuthToken = (user) => {
-  return user.getJwtToken();
+  if (typeof user.getJwtToken === 'function') {
+    return user.getJwtToken();
+  }
+  // Fallback: generate token manually
+  return jwt.sign({ id: user.id || user._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_TIME
+  });
 };
 
-// Helper to clean up database
+// Helper to clean up database (supports both MongoDB & DynamoDB)
 const cleanupDatabase = async () => {
-  await User.deleteMany({});
-  await Product.deleteMany({});
-  await Order.deleteMany({});
-  await Category.deleteMany({});
+  const phase = process.env.MIGRATION_PHASE || 'DYNAMODB_ONLY';
+
+  if (phase.includes('MONGO')) {
+    // Clean MongoDB
+    await User.deleteMany({});
+    await Product.deleteMany({});
+    await Order.deleteMany({});
+    await Category.deleteMany({});
+  }
+
+  if (phase.includes('DYNAMO')) {
+    // Clean DynamoDB - need to implement scan & delete
+    // For now, skip (DynamoDB cleanup is complex)
+    console.log('⚠️  DynamoDB cleanup not implemented yet');
+  }
 };
 
 // Helper to extract cookie from response
 const extractCookie = (response, cookieName = 'token') => {
   const cookies = response.headers['set-cookie'];
   if (!cookies) return null;
-  
+
   const cookie = cookies.find(c => c.startsWith(`${cookieName}=`));
   if (!cookie) return null;
-  
+
   return cookie.split(';')[0].split('=')[1];
 };
 

@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
 // Load test environment variables
@@ -7,8 +6,8 @@ dotenv.config({ path: 'config/config.env' });
 // Set test environment
 process.env.NODE_ENV = 'TEST';
 
-// Force MongoDB mode for tests (unless test explicitly changes it)
-process.env.MIGRATION_PHASE = 'MONGODB_ONLY';
+// Force DynamoDB mode for tests (match production)
+process.env.MIGRATION_PHASE = 'DYNAMODB_ONLY';
 
 // Mock external services to avoid API calls
 jest.mock('cloudinary');
@@ -17,40 +16,36 @@ jest.mock('../utils/sendEmail', () => jest.fn().mockResolvedValue(true));
 // Increase timeout for all tests
 jest.setTimeout(30000);
 
-// Connect to test database before all tests
+// Setup test environment
 beforeAll(async () => {
   try {
-    // Use test database
-    const testDbUri = process.env.TEST_DB_URI || 'mongodb://127.0.0.1:27017/shopit_test';
-    
-    await mongoose.connect(testDbUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    
-    console.log('Test database connected');
+    console.log('✅ Test environment ready (DynamoDB mode)');
+    console.log(`   MIGRATION_PHASE: ${process.env.MIGRATION_PHASE}`);
+    console.log(`   AWS_REGION: ${process.env.AWS_REGION || 'ap-southeast-1'}`);
+
+    // Skip MongoDB connection by clearing DB_URI
+    process.env.DB_URI = '';
+
+    // DynamoDB doesn't require connection setup like MongoDB
+    // AWS SDK will auto-connect when making requests to DynamoDB
+    // Tests will use real AWS DynamoDB (requires AWS credentials)
   } catch (error) {
-    console.error('Test database connection error:', error);
+    console.error('Test setup error:', error);
     process.exit(1);
   }
 });
 
 // Clean up after each test
 afterEach(async () => {
-  // Optional: Clear collections after each test
-  // const collections = mongoose.connection.collections;
-  // for (const key in collections) {
-  //   await collections[key].deleteMany();
-  // }
+  // Tests should clean up their own test data from DynamoDB
 });
 
-// Disconnect after all tests
+// Cleanup after all tests
 afterAll(async () => {
   try {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    console.log('Test database disconnected');
+    console.log('✅ Test cleanup complete');
+    // DynamoDB doesn't need explicit disconnection like MongoDB
   } catch (error) {
-    console.error('Error closing test database:', error);
+    console.error('Error during test cleanup:', error);
   }
 });

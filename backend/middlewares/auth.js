@@ -1,5 +1,4 @@
-const User = require('../models/user')
-
+const userService = require('../services/UserService');
 const jwt = require("jsonwebtoken");
 const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("./catchAsyncErrors");
@@ -12,8 +11,8 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    req.user = await User.findById(decoded.id);
-     next()
+    req.user = await userService.getUser(decoded.id);
+    next()
 })
 
 // Handling users roles

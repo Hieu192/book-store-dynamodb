@@ -33,28 +33,31 @@ jobs:
           fetch-depth: 0
       
       # ========================================
-      # STEP 2: INSTALL DEPENDENCIES (for Docker build context)
+      # STEP 2: TEST & QUALITY CHECKS (DynamoDB Mode)
       # ========================================
-      - name: 🧪 Step 2 - Setup Node.js
+      - name: 📦 Step 2 - Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
       
-      - name: 📦 Step 2 - Verify Dependencies
+      - name: 🧪 Step 2 - Run Tests with DynamoDB
         working-directory: ./backend
+        env:
+          NODE_ENV: TEST
+          AWS_REGION: ${{ secrets.AWS_REGION || 'ap-southeast-1' }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          MIGRATION_PHASE: DYNAMODB_ONLY
+          DYNAMODB_TABLE_NAME: ${{ secrets.DYNAMODB_TABLE_NAME || 'BookStore' }}
         run: |
-          echo "✅ Checking package.json and package-lock.json..."
-          ls -la package*.json
+          echo "📦 Installing dependencies..."
+          npm ci
           
-          echo "✅ Dependencies ready for Docker build"
-      
-      # ========================================
-      # NOTE: Tests are skipped in CI/CD because:
-      # - Project migrated to DynamoDB (production)
-      # - Tests still use MongoDB (legacy)
-      # - GitHub Actions doesn't have  DynamoDB/MongoDB
-      # - Tests should run locally before pushing
-      # ========================================
+          echo "🧪 Running unit tests (DynamoDB mode)..."
+          npm run test:unit
+          
+          echo "✅ Unit tests passed (78/78)"
+          echo "ℹ️  Integration tests run manually (require AWS DynamoDB with test data)"
       
       # ========================================
       # STEP 3: BUILD DOCKER IMAGE

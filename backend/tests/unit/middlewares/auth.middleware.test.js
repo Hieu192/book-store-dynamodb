@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
-const User = require('../../../models/user');
+const userService = require('../../../services/UserService');
 const { isAuthenticatedUser, authorizeRoles } = require('../../../middlewares/auth');
 const ErrorHandler = require('../../../utils/errorHandler');
 
 // Mock dependencies
 jest.mock('jsonwebtoken');
-jest.mock('../../../models/user');
+jest.mock('../../../services/UserService');
 
 describe('Auth Middleware Unit Tests', () => {
   let req, res, next;
@@ -20,7 +20,7 @@ describe('Auth Middleware Unit Tests', () => {
       json: jest.fn()
     };
     next = jest.fn();
-    
+
     process.env.JWT_SECRET = 'test-secret';
   });
 
@@ -32,6 +32,7 @@ describe('Auth Middleware Unit Tests', () => {
     it('should authenticate user with valid token', async () => {
       const mockUser = {
         _id: 'user123',
+        id: 'user123',
         name: 'Test User',
         email: 'test@example.com',
         role: 'user'
@@ -39,12 +40,12 @@ describe('Auth Middleware Unit Tests', () => {
 
       req.cookies.token = 'valid-token';
       jwt.verify.mockReturnValue({ id: 'user123' });
-      User.findById.mockResolvedValue(mockUser);
+      userService.getUser.mockResolvedValue(mockUser);
 
       await isAuthenticatedUser(req, res, next);
 
       expect(jwt.verify).toHaveBeenCalledWith('valid-token', 'test-secret');
-      expect(User.findById).toHaveBeenCalledWith('user123');
+      expect(userService.getUser).toHaveBeenCalledWith('user123');
       expect(req.user).toEqual(mockUser);
       expect(next).toHaveBeenCalledWith();
     });
@@ -92,7 +93,7 @@ describe('Auth Middleware Unit Tests', () => {
     it('should handle user not found', async () => {
       req.cookies.token = 'valid-token';
       jwt.verify.mockReturnValue({ id: 'nonexistent' });
-      User.findById.mockResolvedValue(null);
+      userService.getUser.mockResolvedValue(null);
 
       await isAuthenticatedUser(req, res, next);
 

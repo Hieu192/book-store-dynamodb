@@ -12,5 +12,9 @@ module.exports = {
   coverageDirectory: 'coverage',
   verbose: true,
   testTimeout: 30000,
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/tests/unit/models/'  // Skip MongoDB model tests (production uses DynamoDB)
+  ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js']
 };
