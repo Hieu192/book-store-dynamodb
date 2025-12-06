@@ -147,7 +147,7 @@ resource "aws_route_table_association" "private" {
 
 # CloudFront Managed Prefix List
 data "aws_ec2_managed_prefix_list" "cloudfront" {
-  filter {
+  filter {.
     name   = "prefix-list-name"
     values = ["com.amazonaws.global.cloudfront.origin-facing"]
   }
@@ -159,7 +159,24 @@ resource "aws_security_group" "alb" {
   description = "Security group for ALB"
   vpc_id      = aws_vpc.main.id
 
+  #Có thể dùng cái chỉ cho cloudfront truy cập được ALB
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
+    description     = "HTTP from CloudFront edges only"
+  }
+
+  ingress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
+    description     = "HTTPS from CloudFront edges only"
+  }
   # HTTP (redirect to HTTPS)
+  /*
   ingress {
     from_port   = 80
     to_port     = 80
@@ -176,7 +193,7 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
     description = "HTTPS from anywhere"
   }
-
+  */
   egress {
     from_port   = 0
     to_port     = 0
