@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json - KHÔNG nên ignore để CI/CD hoạt động
 
 # Environment variables
 .env
