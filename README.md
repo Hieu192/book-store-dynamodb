@@ -13,6 +13,8 @@
 - **Storage**: AWS S3 (Uploads, Static files)
 - **Infrastructure**: Terraform (Infrastructure as Code)
 
+![alt text](md/image.png)
+
 ### 💰 Chi Phí Production
 - **Startup**: ~$95/month (traffic thấp)
 - **SME**: ~$125/month (traffic trung bình) ⭐ Khuyến nghị
@@ -428,17 +430,6 @@ Build React app, upload lên S3 và invalidate CloudFront cache:
 
 ---
 
-## 📝 TÀI LIỆU THAM KHẢO
-
-### Documentation Files
-- `backend/README.md` - Tổng quan backend & API
-- `backend/ARCHITECTURE.md` - Kiến trúc chi tiết & Repository Pattern
-- `backend/DYNAMODB_DESIGN.md` - Thiết kế DynamoDB Single-Table
-- `backend/tests/README.md` - Hướng dẫn testing & coverage
-- `PROJECT_SUMMARY.md` - Tóm tắt toàn bộ dự án (file này)
-
----
-
 ## 👥 TEAM & CONTRIBUTION
 
 ### Development Standards
@@ -455,29 +446,6 @@ Build React app, upload lên S3 và invalidate CloudFront cache:
 - Code review required
 - CI/CD pipeline ready
 
----
-
-
-## 🎉 MIGRATION SUCCESS
-
-### Kết quả đạt được:
-- ✅ **Zero downtime migration** từ MongoDB sang DynamoDB
-- ✅ **Performance improvement**: 75-85% faster
-- ✅ **Cost reduction**: Giảm 73% chi phí ($45 → $12/month)
-- ✅ **CloudFront CDN**: Image delivery <50ms globally
-- ✅ **Auto-scaling**: Không giới hạn throughput
-- ✅ **Code compatibility**: Không thay đổi business logic
-
-### Performance Comparison:
-
-| Operation | MongoDB | DynamoDB | Improvement |
-|-----------|---------|----------|-------------|
-| Get by ID | ~50ms | ~10ms | **80% faster** |
-| List Products | ~200ms | ~50ms | **75% faster** |
-| Create Product | ~100ms | ~20ms | **80% faster** |
-| Get User Orders | ~150ms | ~30ms | **80% faster** |
-
----
 
 **Last Updated**: November 22, 2025
 **Version**: 2.3.0

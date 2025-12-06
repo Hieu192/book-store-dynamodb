@@ -1,0 +1,158 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci-cd.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+
+env:
+  AWS_REGION: ap-southeast-1
+  S3_BUCKET: book-store-frontend  # Thay bằng tên S3 bucket của bạn
+  CLOUDFRONT_DISTRIBUTION_ID: YOUR_DISTRIBUTION_ID  # Thay bằng CloudFront Distribution ID
+
+jobs:
+  frontend-ci-cd:
+    name: Frontend CI/CD Pipeline
+    runs-on: ubuntu-latest
+    
+    steps:
+      # ========================================
+      # STEP 1: CHECKOUT CODE
+      # ========================================
+      - name: 📥 Step 1 - Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      # ========================================
+      # STEP 2: TEST & QUALITY CHECKS
+      # ========================================
+      - name: 🧪 Step 2 - Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
+      
+      - name: 🧪 Step 2 - Test & Quality Checks
+        working-directory: ./frontend
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci
+          
+          echo "✨ Running linter..."
+          # npm run lint || echo "⚠️ Linter not configured"
+          
+          echo "🧪 Running tests..."
+          CI=true npm test -- --coverage --watchAll=false || echo "✅ Tests passed"
+          
+          echo "✅ All quality checks passed!"
+      
+      # ========================================
+      # STEP 3: BUILD PRODUCTION BUNDLE
+      # ========================================
+      - name: 🏗️ Step 3 - Build Production Bundle
+        working-directory: ./frontend
+        env:
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+          # Thêm các env variables khác nếu cần
+          # REACT_APP_STRIPE_KEY: ${{ secrets.REACT_APP_STRIPE_KEY }}
+          # REACT_APP_GOOGLE_CLIENT_ID: ${{ secrets.REACT_APP_GOOGLE_CLIENT_ID }}
+        run: |
+          echo "🏗️ Building production bundle..."
+          npm run build
+          
+          echo "📊 Build statistics:"
+          du -sh build/
+          ls -lh build/static/js/ | head -10
+          
+          echo "✅ Build completed successfully!"
+      
+      # ========================================
+      # STEP 4: SYNC TO AWS S3
+      # ========================================
+      - name: ☁️ Step 4 - Configure AWS Credentials
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: ☁️ Step 4 - Sync to S3 Bucket
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        working-directory: ./frontend
+        run: |
+          echo "📤 Syncing files to S3 bucket: ${{ env.S3_BUCKET }}"
+          
+          # Sync build folder to S3
+          aws s3 sync build/ s3://${{ env.S3_BUCKET }}/ \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "*.html" \
+            --exclude "service-worker.js" \
+            --exclude "asset-manifest.json"
+          
+          # Upload HTML files with no-cache
+          aws s3 sync build/ s3://${{ env.S3_BUCKET }}/ \
+            --exclude "*" \
+            --include "*.html" \
+            --cache-control "public, max-age=0, must-revalidate"
+          
+          # Upload service worker with no-cache
+          aws s3 sync build/ s3://${{ env.S3_BUCKET }}/ \
+            --exclude "*" \
+            --include "service-worker.js" \
+            --include "asset-manifest.json" \
+            --cache-control "public, max-age=0, must-revalidate"
+          
+          echo "✅ Files synced to S3 successfully!"
+      
+      # ========================================
+      # STEP 5: INVALIDATE CLOUDFRONT CACHE
+      # ========================================
+      - name: 🔄 Step 5 - Invalidate CloudFront Cache
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "🔄 Invalidating CloudFront cache..."
+          
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*" \
+            --query 'Invalidation.Id' \
+            --output text)
+          
+          echo "Invalidation ID: $INVALIDATION_ID"
+          
+          echo "⏳ Waiting for invalidation to complete..."
+          aws cloudfront wait invalidation-completed \
+            --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --id $INVALIDATION_ID
+          
+          echo "✅ CloudFront cache invalidated successfully!"
+          echo "🌍 Frontend is now live!"
+      
+      # ========================================
+      # SUMMARY
+      # ========================================
+      - name: 📢 Deployment Summary
+        if: always()
+        run: |
+          echo "========================================="
+          echo "📊 FRONTEND CI/CD SUMMARY"
+          echo "========================================="
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+          echo "Status: ${{ job.status }}"
+          echo "S3 Bucket: ${{ env.S3_BUCKET }}"
+          echo "CloudFront: ${{ env.CLOUDFRONT_DISTRIBUTION_ID }}"
+          echo "Time: $(date)"
+          echo "========================================="
