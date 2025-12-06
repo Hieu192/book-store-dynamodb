@@ -15,9 +15,14 @@ const userService = require('../services/UserService');
 // Register a user => /api/v1/register
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
     const { name, email, password } = req.body;
-    
+
+    // Validate required fields
+    if (!name || !email || !password) {
+        return next(new ErrorHandler('Please enter name, email and password', 400));
+    }
+
     let avatar = undefined;
-    
+
     // Upload avatar if provided
     if (req.body.avatar) {
         const result = await uploadImage(req.body.avatar, 'avatars');
@@ -33,17 +38,17 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
         password,
         ...(avatar && { avatar })
     });
-    
+
     // Remove password from response
     if (user.password) user.password = undefined;
-    
+
     sendToken(user, 200, res);
 });
 
 // Login User => /api/v1/login
 exports.loginUser = catchAsyncErrors(async (req, res, next) => {
     const { email, password } = req.body;
-    
+
     // Checks if email and password is entered by user
     if (!email || !password) {
         return next(new ErrorHandler('Please enter email & password', 400));
@@ -55,16 +60,16 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
     if (!user) {
         return next(new ErrorHandler('Invalid Email or Password', 401));
     }
-    
+
     // Checks if password is correct or not
     const isPasswordMatched = await bcrypt.compare(password, user.password);
     if (!isPasswordMatched) {
         return next(new ErrorHandler('Invalid Email or Password', 401));
     }
-    
+
     // Remove password from response
     user.password = undefined;
-    
+
     sendToken(user, 200, res);
 });
 
@@ -72,7 +77,7 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
 exports.loginWithGoogle = catchAsyncErrors(async (req, res, next) => {
     const { email, picture, name } = req.body;
     const account = await userService.getUserByEmail(email);
-    
+
     if (!account) {
         try {
             const user = await userService.createUser({
@@ -82,12 +87,12 @@ exports.loginWithGoogle = catchAsyncErrors(async (req, res, next) => {
                     url: picture
                 }
             });
-            
+
             // Remove password from response
             if (user.password) user.password = undefined;
-            
+
             sendToken(user, 200, res);
-        } catch(err) {
+        } catch (err) {
             console.log(err);
             return next(new ErrorHandler('Error creating user', 500));
         }
@@ -106,13 +111,13 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
 
     // Get reset token
     const resetToken = crypto.randomBytes(20).toString('hex');
-    
+
     // Hash and set to resetPasswordToken
     const resetPasswordToken = crypto
         .createHash('sha256')
         .update(resetToken)
         .digest('hex');
-    
+
     // Set token expire time (30 minutes)
     const resetPasswordExpire = Date.now() + 30 * 60 * 1000;
 
@@ -125,14 +130,14 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
     const resetUrl = `${process.env.FRONTEND_URL}/password/reset/${resetToken}`;
 
     const message = `Your password reset token is as follow:\n\n${resetUrl}\n\nIf you have not requested this email, then ignore it.`;
-    
+
     try {
         await sendEmail({
             email: user.email,
             subject: 'ShopIT Password Recovery',
             message
         });
-        
+
         res.status(200).json({
             success: true,
             message: `Email sent to: ${user.email}`
@@ -155,11 +160,11 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
         .createHash('sha256')
         .update(req.params.token)
         .digest('hex');
-    
+
     // Find user with valid token
     const users = await userService.getAllUsers();
-    const user = users.find(u => 
-        u.resetPasswordToken === resetPasswordToken && 
+    const user = users.find(u =>
+        u.resetPasswordToken === resetPasswordToken &&
         u.resetPasswordExpire > Date.now()
     );
 
@@ -180,7 +185,7 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
         resetPasswordToken: undefined,
         resetPasswordExpire: undefined
     });
-    
+
     const updatedUser = await userService.getUser(user.id || user._id);
     if (updatedUser.password) updatedUser.password = undefined;
 
@@ -209,11 +214,11 @@ exports.updatePassword = catchAsyncErrors(async (req, res, next) => {
 
     // Hash new password
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    
+
     await userService.updateUser(req.user.id, {
         password: hashedPassword
     });
-    
+
     const updatedUser = await userService.getUser(req.user.id);
     if (updatedUser.password) updatedUser.password = undefined;
 
