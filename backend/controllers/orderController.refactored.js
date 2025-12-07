@@ -10,7 +10,7 @@ const productService = require('../services/ProductService');
 const { notifyOrderCreated, notifyOrderUpdated, notifyOrderDelivered } = require('../utils/notifications');
 
 // Create a new order => /api/v1/order/new
-exports.newOrder = catchAsyncErrors(async (req, res) => {
+exports.newOrder = catchAsyncErrors(async (req, res, next) => {
   const {
     orderCode,
     orderItems,
@@ -21,6 +21,20 @@ exports.newOrder = catchAsyncErrors(async (req, res) => {
     totalPrice,
     paymentInfo,
   } = req.body;
+
+  // ✅ FIX: Reduce stock WHEN ORDER IS CREATED, not when delivered
+  try {
+    // Validate and reduce stock for all items
+    await Promise.all(
+      orderItems.map(async (item) => {
+        // Reduce stock (negative quantity)
+        await productService.updateStock(item.product, -item.quantity);
+      })
+    );
+  } catch (error) {
+    // If stock reduction fails, return error immediately
+    return next(new ErrorHandler(error.message || 'Failed to update stock', 400));
+  }
 
   const orderData = {
     orderCode,
@@ -72,7 +86,7 @@ exports.myOrders = catchAsyncErrors(async (req, res) => {
 // Get all orders - ADMIN => /api/v1/admin/orders/
 exports.allOrders = catchAsyncErrors(async (req, res) => {
   const orders = await orderService.getAllOrders();
-  
+
   let totalAmount = 0;
   orders.forEach((order) => {
     totalAmount += order.totalPrice;
@@ -97,17 +111,13 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("You have already delivered this order", 400));
   }
 
-  // Update stock for all order items using Promise.all
-  await Promise.all(
-    order.orderItems.map(async (item) => {
-      await updateStock(item.product, item.quantity);
-    })
-  );
+  // ✅ REMOVED: Stock update logic (stock reduced at order creation)
+  // Stock should NOT be updated here - it's already reduced when order was created
 
   // Update order status
   const updateData = {
     orderStatus: req.body.status,
-    deliveredAt: Date.now()
+    deliveredAt: req.body.status === 'Delivered' ? Date.now() : undefined
   };
 
   await orderService.updateOrder(req.params.id, updateData);
@@ -126,16 +136,6 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
     success: true,
   });
 });
-
-// Helper function to update product stock
-async function updateStock(productId, quantity) {
-  const product = await productService.getProduct(productId);
-
-  if (product) {
-    const newStock = product.stock - quantity;
-    await productService.updateProduct(productId, { stock: newStock });
-  }
-}
 
 // Delete order => /api/v1/admin/order/:id
 exports.deleteOrder = catchAsyncErrors(async (req, res, next) => {

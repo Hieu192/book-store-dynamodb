@@ -46,6 +46,9 @@ class DynamoOrderRepository {
       GSI1SK: `ORDER#${timestamp}`,
       GSI2PK: `STATUS#${orderData.orderStatus || 'Processing'}`,
       GSI2SK: `CREATED#${timestamp}`,
+      // ✅ ADD GSI3 for efficient orderCode lookup
+      GSI3PK: `ORDERCODE#${orderData.orderCode}`,
+      GSI3SK: 'METADATA',
       EntityType: 'Order',
       orderId,
       orderCode: orderData.orderCode,
@@ -58,6 +61,8 @@ class DynamoOrderRepository {
       totalPrice: orderData.totalPrice,
       orderStatus: orderData.orderStatus || 'Processing',
       deliveredAt: orderData.deliveredAt,
+      paidAt: orderData.paidAt,
+      checkoutUrl: orderData.checkoutUrl,
       createdAt: orderData.createdAt || timestamp,
       updatedAt: timestamp
     };
@@ -83,6 +88,8 @@ class DynamoOrderRepository {
       totalPrice: item.totalPrice,
       orderStatus: item.orderStatus,
       deliveredAt: item.deliveredAt,
+      paidAt: item.paidAt,
+      checkoutUrl: item.checkoutUrl,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt
     };
@@ -281,6 +288,43 @@ class DynamoOrderRepository {
     }
 
     return orders;
+  }
+
+  /**
+   * Find order by orderCode
+   * ⚠️ TEMPORARY: Using SCAN until GSI3 is created
+   * TODO: After running migration script, switch to GSI3 Query
+   */
+  async findByOrderCode(orderCode) {
+    // Try SCAN with retry for eventual consistency
+    const maxRetries = 3;
+    const retryDelays = [200, 400, 600];
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const params = {
+        TableName: this.tableName,
+        FilterExpression: 'EntityType = :type AND orderCode = :orderCode',
+        ExpressionAttributeValues: {
+          ':type': 'Order',
+          ':orderCode': orderCode
+        }
+      };
+
+      const result = await this.dynamodb.scan(params).promise();
+
+      if (result.Items.length > 0) {
+        const order = this._transformFromDynamo(result.Items[0]);
+        order.orderItems = await this.getOrderItems(order._id);
+        return order;
+      }
+
+      // Retry if not found
+      if (attempt < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]));
+      }
+    }
+
+    return null;
   }
 }
 

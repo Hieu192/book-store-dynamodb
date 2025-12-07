@@ -10,20 +10,19 @@ const orderService = require('../services/OrderService');
 
 // Initialize PayOS with environment variables
 const payOS = new PayOS(
-  process.env.PAYOS_CLIENT_ID,
-  process.env.PAYOS_API_KEY,
-  process.env.PAYOS_CHECKSUM_KEY
+    process.env.PAYOS_CLIENT_ID,
+    process.env.PAYOS_API_KEY,
+    process.env.PAYOS_CHECKSUM_KEY
 );
 
 // Receive payment webhook => /api/v1/payment/webhook
 exports.receiveHookPayment = catchAsyncErrors(async (req, res) => {
     const { data, success } = req.body;
     const { orderCode, amount } = data;
-    
-    // Find order by orderCode
-    const orders = await orderService.getAllOrders();
-    const order = orders.find(o => o.orderCode === orderCode);
-    
+
+    // Find order by orderCode (efficient lookup)
+    const order = await orderService.getOrderByOrderCode(orderCode);
+
     if (order) {
         // Verify amount and update payment status
         if (Number(amount) === order.totalPrice && success) {
@@ -40,7 +39,7 @@ exports.receiveHookPayment = catchAsyncErrors(async (req, res) => {
 // Create payment link => /api/v1/payment/process
 exports.createPaymentLink = catchAsyncErrors(async (req, res, next) => {
     const { orderCode, totalPrice } = req.body;
-    
+
     const body = {
         orderCode,
         amount: totalPrice,
@@ -48,20 +47,19 @@ exports.createPaymentLink = catchAsyncErrors(async (req, res, next) => {
         cancelUrl: `${process.env.FRONTEND_URL}/cart`,
         returnUrl: process.env.FRONTEND_URL
     };
-    
+
     try {
         const { checkoutUrl } = await payOS.createPaymentLink(body);
-        
-        // Update order with checkout URL
-        const orders = await orderService.getAllOrders();
-        const order = orders.find(o => o.orderCode === orderCode);
-        
+
+        // Update order with checkout URL (efficient lookup)
+        const order = await orderService.getOrderByOrderCode(orderCode);
+
         if (order) {
             await orderService.updateOrder(order.id || order._id, {
                 checkoutUrl
             });
         }
-        
+
         res.status(200).json({
             success: true,
             checkoutUrl

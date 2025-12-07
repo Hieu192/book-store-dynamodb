@@ -71,6 +71,7 @@ class DynamoProductRepository extends IProductRepository {
       category: productData.category,
       images: images,
       userId: productData.user,
+      version: productData.version || 0,  // ✅ Add version for optimistic locking
       createdAt: productData.createdAt || timestamp,
       updatedAt: timestamp
     };
@@ -436,22 +437,45 @@ class DynamoProductRepository extends IProductRepository {
   }
 
   /**
-   * Update product stock
+   * Update product stock (Atomic operation to prevent race conditions)
+   * Uses DynamoDB's atomic counter and conditional expressions
    */
   async updateStock(id, quantity) {
-    const product = await this.findById(id);
+    const keys = this._getProductKeys(id);
 
-    if (!product) {
-      throw new Error('Product not found');
+    try {
+      // ✅ ATOMIC UPDATE: Directly update stock without read-modify-write
+      const params = {
+        TableName: this.tableName,
+        Key: keys,
+        UpdateExpression: 'SET stock = stock + :qty, updatedAt = :timestamp ADD #version :inc',
+        ConditionExpression: 'attribute_exists(PK) AND stock + :qty >= :zero',
+        ExpressionAttributeNames: {
+          '#version': 'version'
+        },
+        ExpressionAttributeValues: {
+          ':qty': quantity,
+          ':zero': 0,
+          ':timestamp': new Date().toISOString(),
+          ':inc': 1
+        },
+        ReturnValues: 'ALL_NEW'
+      };
+
+      const result = await this.dynamodb.update(params).promise();
+      return this._transformFromDynamo(result.Attributes);
+
+    } catch (error) {
+      if (error.code === 'ConditionalCheckFailedException') {
+        // Check if product exists or stock insufficient
+        const product = await this.findById(id);
+        if (!product) {
+          throw new Error('Product not found');
+        }
+        throw new Error('Insufficient stock - product may be out of stock or concurrent update occurred');
+      }
+      throw error;
     }
-
-    const newStock = product.stock + quantity;
-
-    if (newStock < 0) {
-      throw new Error('Insufficient stock');
-    }
-
-    return await this.update(id, { stock: newStock });
   }
 
   /**

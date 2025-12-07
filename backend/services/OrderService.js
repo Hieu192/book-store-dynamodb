@@ -111,6 +111,23 @@ class OrderService {
 
     return ordersWithProduct;
   }
+
+  /**
+   * Get order by orderCode
+   * More efficient than searching through all orders
+   */
+  async getOrderByOrderCode(orderCode) {
+    const repo = this._getRepository();
+
+    // Try to use findByOrderCode if available in the repository
+    if (typeof repo.findByOrderCode === 'function') {
+      return await repo.findByOrderCode(orderCode);
+    }
+
+    // Fallback: search through all orders
+    const allOrders = await repo.findAll();
+    return allOrders.find(o => o.orderCode === orderCode) || null;
+  }
 }
 
 module.exports = new OrderService();
