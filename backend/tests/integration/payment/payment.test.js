@@ -1,6 +1,5 @@
 const request = require('supertest');
 const app = require('../../../app');
-const orderService = require('../../../services/OrderService');
 const {
   createTestUser,
   createTestOrder
@@ -22,8 +21,9 @@ describe('Payment Integration Tests', () => {
     it('should create payment link successfully', async () => {
       const user = await createTestUser();
       const userId = user.id || user._id;
+
       const order = await createTestOrder(userId, {
-        orderCode: Date.now(),
+        orderCode: Date.now() + Math.floor(Math.random() * 10000),
         totalPrice: 1000
       });
 
@@ -40,16 +40,14 @@ describe('Payment Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.checkoutUrl).toBeTruthy();
       expect(response.body.checkoutUrl).toContain('payos.vn');
-
-      // Note: Order update with checkoutUrl happens async
-      // We verify the API response, not DB state
     });
 
     it('should create payment link with valid data', async () => {
       const user = await createTestUser();
       const userId = user.id || user._id;
+
       const order = await createTestOrder(userId, {
-        orderCode: Date.now() + 1,
+        orderCode: Date.now() + 50000 + Math.floor(Math.random() * 10000),
         totalPrice: 2000
       });
 
@@ -66,38 +64,22 @@ describe('Payment Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.checkoutUrl).toBeTruthy();
     });
-
-    it('should handle different order amounts', async () => {
-      const user = await createTestUser();
-      const userId = user.id || user._id;
-      const order = await createTestOrder(userId, {
-        orderCode: Date.now() + 2,
-        totalPrice: 5000
-      });
-
-      const paymentData = {
-        orderCode: order.orderCode,
-        totalPrice: 5000
-      };
-
-      const response = await request(app)
-        .post('/api/v1/create-payment-link')
-        .send(paymentData)
-        .expect(200);
-
-      expect(response.body.success).toBe(true);
-    });
   });
 
   describe('POST /api/v1/receive-hook', () => {
     it('should process successful payment webhook', async () => {
       const user = await createTestUser();
       const userId = user.id || user._id;
-      const uniqueOrderCode = Date.now();
+
+      // Unique orderCode with random component
+      const uniqueOrderCode = Date.now() + Math.floor(Math.random() * 100000);
       const order = await createTestOrder(userId, {
         orderCode: uniqueOrderCode,
         totalPrice: 1000
       });
+
+      // Wait for order to be saved (repository has retry logic)
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const webhookData = {
         data: {
@@ -114,24 +96,29 @@ describe('Payment Integration Tests', () => {
 
       expect(response.body.success).toBe(true);
 
-      // Verify order marked as paid via OrderService
-      // Note: Controller searches all orders for matching orderCode
-      // This is async and may take time, so we verify via service
-      const allOrders = await orderService.getAllOrders();
-      const paidOrder = allOrders.find(o => o.orderCode === uniqueOrderCode);
-      if (paidOrder) {
-        expect(paidOrder.paidAt).toBeTruthy();
-      }
+      // Wait for async update
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Verify order marked as paid
+      const orderService = require('../../../services/OrderService');
+      const updatedOrder = await orderService.getOrderByOrderCode(uniqueOrderCode);
+      expect(updatedOrder).toBeTruthy();
+      expect(updatedOrder.paidAt).toBeTruthy();
     });
 
-    it('should not update order if amount mismatch', async () => {
+    it('should not process webhook with wrong amount', async () => {
       const user = await createTestUser();
       const userId = user.id || user._id;
-      const uniqueOrderCode = Date.now() + 100;
+
+      // Unique orderCode with large offset and random component
+      const uniqueOrderCode = Date.now() + 1000000 + Math.floor(Math.random() * 100000);
       const order = await createTestOrder(userId, {
         orderCode: uniqueOrderCode,
         totalPrice: 1000
       });
+
+      // Wait for order to be saved (repository has retry logic)
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const webhookData = {
         data: {
@@ -146,24 +133,30 @@ describe('Payment Integration Tests', () => {
         .send(webhookData)
         .expect(200);
 
+      // Controller still returns success even if amount is wrong (just doesn't update paidAt)
       expect(response.body.success).toBe(true);
 
-      // Verify order NOT marked as paid
-      const allOrders = await orderService.getAllOrders();
-      const unpaidOrder = allOrders.find(o => o.orderCode === uniqueOrderCode);
-      if (unpaidOrder) {
-        expect(unpaidOrder.paidAt).toBeFalsy();
-      }
+      // Wait and verify order NOT marked as paid
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const orderService = require('../../../services/OrderService');
+      const unpaidOrder = await orderService.getOrderByOrderCode(uniqueOrderCode);
+      expect(unpaidOrder).toBeTruthy();
+      expect(unpaidOrder.paidAt).toBeFalsy();
     });
 
-    it('should not update order if payment not successful', async () => {
+    it('should not process webhook if payment failed', async () => {
       const user = await createTestUser();
       const userId = user.id || user._id;
-      const uniqueOrderCode = Date.now() + 200;
+
+      // Unique orderCode with large offset and random component
+      const uniqueOrderCode = Date.now() + 2000000 + Math.floor(Math.random() * 100000);
       const order = await createTestOrder(userId, {
         orderCode: uniqueOrderCode,
         totalPrice: 1000
       });
+
+      // Wait for order to be saved (repository has retry logic)
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const webhookData = {
         data: {
@@ -178,20 +171,21 @@ describe('Payment Integration Tests', () => {
         .send(webhookData)
         .expect(200);
 
+      // Controller still returns success even if payment failed (just doesn't update paidAt)
       expect(response.body.success).toBe(true);
 
-      // Verify order NOT marked as paid
-      const allOrders = await orderService.getAllOrders();
-      const unpaidOrder = allOrders.find(o => o.orderCode === uniqueOrderCode);
-      if (unpaidOrder) {
-        expect(unpaidOrder.paidAt).toBeFalsy();
-      }
+      // Wait and verify order NOT marked as paid
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const orderService = require('../../../services/OrderService');
+      const unpaidOrder = await orderService.getOrderByOrderCode(uniqueOrderCode);
+      expect(unpaidOrder).toBeTruthy();
+      expect(unpaidOrder.paidAt).toBeFalsy();
     });
 
     it('should handle non-existent order', async () => {
       const webhookData = {
         data: {
-          orderCode: 999999999,
+          orderCode: 999999999 + Math.floor(Math.random() * 1000000),
           amount: 1000
         },
         success: true

@@ -116,8 +116,25 @@ const createTestOrder = async (userId, orderData = {}) => {
     orderStatus: 'Processing'
   };
 
+  const finalOrderData = { ...defaultOrder, ...orderData };
+
+  // ✅ Reduce stock for order items (matching new business logic)
+  if (finalOrderData.orderItems && Array.isArray(finalOrderData.orderItems)) {
+    for (const item of finalOrderData.orderItems) {
+      // Only reduce stock if product ID is not the dummy ID
+      if (item.product && item.product !== '507f1f77bcf86cd799439011') {
+        try {
+          await productService.updateStock(item.product, -item.quantity);
+        } catch (error) {
+          // Ignore errors for non-existent products (test data)
+          console.log(`⚠️  Could not reduce stock for product ${item.product}: ${error.message}`);
+        }
+      }
+    }
+  }
+
   // Use OrderService
-  const order = await orderService.createOrder({ ...defaultOrder, ...orderData });
+  const order = await orderService.createOrder(finalOrderData);
   return order;
 };
 

@@ -56,8 +56,14 @@ describe('Order Integration Tests', () => {
       const response = await request(app)
         .post('/api/v1/order/new')
         .set('Cookie', [`token=${token}`])
-        .send(orderData)
-        .expect(200);
+        .send(orderData);
+
+      // Debug: Log response if not 200
+      if (response.status !== 200) {
+        console.log('[TEST DEBUG] Order creation failed:', response.status, response.body);
+      }
+
+      expect(response.status).toBe(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.order).toHaveProperty('orderCode', orderData.orderCode);

@@ -444,23 +444,46 @@ class DynamoProductRepository extends IProductRepository {
     const keys = this._getProductKeys(id);
 
     try {
-      // ✅ ATOMIC UPDATE: Directly update stock without read-modify-write
-      const params = {
-        TableName: this.tableName,
-        Key: keys,
-        UpdateExpression: 'SET stock = stock + :qty, updatedAt = :timestamp ADD #version :inc',
-        ConditionExpression: 'attribute_exists(PK) AND stock + :qty >= :zero',
-        ExpressionAttributeNames: {
-          '#version': 'version'
-        },
-        ExpressionAttributeValues: {
-          ':qty': quantity,
-          ':zero': 0,
-          ':timestamp': new Date().toISOString(),
-          ':inc': 1
-        },
-        ReturnValues: 'ALL_NEW'
-      };
+      let params;
+
+      if (quantity >= 0) {
+        // ✅ Adding stock - no pre-condition needed
+        params = {
+          TableName: this.tableName,
+          Key: keys,
+          UpdateExpression: 'SET stock = stock + :qty, updatedAt = :timestamp ADD #version :inc',
+          ConditionExpression: 'attribute_exists(PK)',
+          ExpressionAttributeNames: {
+            '#version': 'version'
+          },
+          ExpressionAttributeValues: {
+            ':qty': quantity,
+            ':timestamp': new Date().toISOString(),
+            ':inc': 1
+          },
+          ReturnValues: 'ALL_NEW'
+        };
+      } else {
+        // ✅ Reducing stock - ensure stock is sufficient
+        // DynamoDB doesn't support arithmetic in ConditionExpression, so check stock >= abs(quantity)
+        const minRequired = Math.abs(quantity);
+        params = {
+          TableName: this.tableName,
+          Key: keys,
+          UpdateExpression: 'SET stock = stock + :qty, updatedAt = :timestamp ADD #version :inc',
+          ConditionExpression: 'attribute_exists(PK) AND stock >= :minRequired',
+          ExpressionAttributeNames: {
+            '#version': 'version'
+          },
+          ExpressionAttributeValues: {
+            ':qty': quantity,  // negative value
+            ':minRequired': minRequired,
+            ':timestamp': new Date().toISOString(),
+            ':inc': 1
+          },
+          ReturnValues: 'ALL_NEW'
+        };
+      }
 
       const result = await this.dynamodb.update(params).promise();
       return this._transformFromDynamo(result.Attributes);
