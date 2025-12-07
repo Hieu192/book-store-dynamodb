@@ -23,7 +23,7 @@ describe('Order Integration Tests', () => {
     it('should create new order', async () => {
       const user = await createTestUser();
       const userId = user.id || user._id;
-      const product = await createTestProduct(userId, { stock: 10 });
+      const product = await createTestProduct(userId, { stock: 100 });  // ✅ Increase stock
       const productId = product.id || product._id;
       const token = user.getJwtToken();
 
@@ -63,6 +63,10 @@ describe('Order Integration Tests', () => {
       expect(response.body.order).toHaveProperty('orderCode', orderData.orderCode);
       expect(response.body.order.orderItems).toHaveLength(1);
 
+      // ✅ Verify stock reduced immediately at order creation
+      const updatedProduct = await productService.getProduct(productId);
+      expect(updatedProduct.stock).toBe(98); // 100 - 2
+
       // Verify via OrderService
       const orderId = response.body.order.id || response.body.order._id;
       const order = await orderService.getOrder(orderId);
@@ -93,8 +97,8 @@ describe('Order Integration Tests', () => {
     it('should create order with multiple items', async () => {
       const user = await createTestUser();
       const userId = user.id || user._id;
-      const product1 = await createTestProduct(userId, { name: `Product A ${Date.now()}`, price: 100 });
-      const product2 = await createTestProduct(userId, { name: `Product B ${Date.now()}`, price: 200 });
+      const product1 = await createTestProduct(userId, { name: `Product A ${Date.now()}`, price: 100, stock: 100 });
+      const product2 = await createTestProduct(userId, { name: `Product B ${Date.now()}`, price: 200, stock: 100 });
       const token = user.getJwtToken();
 
       const orderData = {
@@ -274,8 +278,12 @@ describe('Order Integration Tests', () => {
       const admin = await createAdminUser();
       const user = await createTestUser();
       const userId = user.id || user._id;
-      const product = await createTestProduct(userId, { stock: 10 });
+      const product = await createTestProduct(userId, { stock: 100 });  // ✅ Increase stock
       const productId = product.id || product._id;
+
+      // Get initial stock
+      const initialProduct = await productService.getProduct(productId);
+      const initialStock = initialProduct.stock;
 
       const order = await createTestOrder(userId, {
         orderStatus: 'Processing',
@@ -292,6 +300,10 @@ describe('Order Integration Tests', () => {
       const token = admin.getJwtToken();
       const orderId = order.id || order._id;
 
+      // ✅ Stock should already be reduced when order was created
+      const productAfterOrder = await productService.getProduct(productId);
+      expect(productAfterOrder.stock).toBe(initialStock - 2); // Already reduced
+
       const response = await request(app)
         .put(`/api/v1/admin/order/${orderId}`)
         .set('Cookie', [`token=${token}`])
@@ -305,9 +317,9 @@ describe('Order Integration Tests', () => {
       expect(updatedOrder.orderStatus).toBe('Delivered');
       expect(updatedOrder.deliveredAt).toBeTruthy();
 
-      // Verify stock updated via ProductService
+      // ✅ Stock should NOT change on delivery (already reduced at order creation)
       const updatedProduct = await productService.getProduct(productId);
-      expect(updatedProduct.stock).toBe(8); // 10 - 2
+      expect(updatedProduct.stock).toBe(initialStock - 2); // Same as after order creation
     });
 
     it('should not update already delivered order', async () => {
