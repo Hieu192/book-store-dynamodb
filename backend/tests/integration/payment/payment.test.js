@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('../../../app');
+const orderService = require('../../../services/OrderService');
 const {
   createTestUser,
   createTestOrder
@@ -133,12 +134,19 @@ describe('Payment Integration Tests', () => {
         .send(webhookData)
         .expect(200);
 
+      // Debug
+      if (!response.body.success) {
+        console.log('[DEBUG] Wrong amount test - Response:', response.body);
+        console.log('[DEBUG] Order code:', uniqueOrderCode);
+        const checkOrder = await orderService.getOrderByOrderCode(uniqueOrderCode);
+        console.log('[DEBUG] Order found:', checkOrder ? 'YES' : 'NO');
+      }
+
       // Controller still returns success even if amount is wrong (just doesn't update paidAt)
       expect(response.body.success).toBe(true);
 
       // Wait and verify order NOT marked as paid
       await new Promise(resolve => setTimeout(resolve, 1000));
-      const orderService = require('../../../services/OrderService');
       const unpaidOrder = await orderService.getOrderByOrderCode(uniqueOrderCode);
       expect(unpaidOrder).toBeTruthy();
       expect(unpaidOrder.paidAt).toBeFalsy();
@@ -176,7 +184,6 @@ describe('Payment Integration Tests', () => {
 
       // Wait and verify order NOT marked as paid
       await new Promise(resolve => setTimeout(resolve, 1000));
-      const orderService = require('../../../services/OrderService');
       const unpaidOrder = await orderService.getOrderByOrderCode(uniqueOrderCode);
       expect(unpaidOrder).toBeTruthy();
       expect(unpaidOrder.paidAt).toBeFalsy();
