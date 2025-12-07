@@ -16,7 +16,7 @@ class OrderService {
 
   _getRepository() {
     const phase = this.migrationManager.getCurrentPhase();
-    
+
     switch (phase) {
       case 'MONGODB_ONLY':
         return this.mongoRepo;
@@ -44,7 +44,7 @@ class OrderService {
 
         const writeOps = ['create', 'update', 'delete'];
         if (writeOps.includes(prop)) {
-          return async function(...args) {
+          return async function (...args) {
             try {
               const primaryResult = await originalMethod.apply(target, args);
               secondaryRepo[prop](...args).catch(err => {
@@ -100,7 +100,7 @@ class OrderService {
   async getOrdersContainingProduct(productId) {
     const repo = this._getRepository();
     const allOrders = await repo.findAll();
-    
+
     // Filter orders that contain the product
     const ordersWithProduct = allOrders.filter(order => {
       return order.orderItems && order.orderItems.some(item => {

@@ -12,7 +12,7 @@ class DynamoOrderRepository {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     });
-    
+
     this.tableName = 'BookStore';
   }
 
@@ -39,7 +39,7 @@ class DynamoOrderRepository {
   _transformToDynamo(orderData, id = null) {
     const orderId = id || this._generateId();
     const timestamp = new Date().toISOString();
-    
+
     return {
       ...this._getOrderKeys(orderId),
       GSI1PK: `USER#${orderData.user}`,
@@ -68,9 +68,10 @@ class DynamoOrderRepository {
    */
   _transformFromDynamo(item) {
     if (!item) return null;
-    
+
     return {
       _id: item.orderId,
+      id: item.orderId, // Add for compatibility
       orderCode: item.orderCode,
       user: item.userId,
       shippingInfo: item.shippingInfo,
@@ -93,18 +94,19 @@ class DynamoOrderRepository {
   async findById(id) {
     const params = {
       TableName: this.tableName,
-      Key: this._getOrderKeys(id)
+      Key: this._getOrderKeys(id),
+      ConsistentRead: true
     };
 
     const result = await this.dynamodb.get(params).promise();
-    
+
     if (!result.Item) return null;
-    
+
     const order = this._transformFromDynamo(result.Item);
-    
+
     // Get order items
     order.orderItems = await this.getOrderItems(id);
-    
+
     return order;
   }
 
@@ -122,7 +124,7 @@ class DynamoOrderRepository {
     };
 
     const result = await this.dynamodb.query(params).promise();
-    
+
     return result.Items.map(item => ({
       product: item.productId,
       name: item.name,
@@ -174,11 +176,11 @@ class DynamoOrderRepository {
    */
   async update(id, updateData) {
     const keys = this._getOrderKeys(id);
-    
+
     const updateExpressions = [];
     const expressionAttributeNames = {};
     const expressionAttributeValues = {};
-    
+
     Object.keys(updateData).forEach((key, index) => {
       const attrName = `#attr${index}`;
       const attrValue = `:val${index}`;
@@ -186,7 +188,7 @@ class DynamoOrderRepository {
       expressionAttributeNames[attrName] = key;
       expressionAttributeValues[attrValue] = updateData[key];
     });
-    
+
     updateExpressions.push('#updatedAt = :updatedAt');
     expressionAttributeNames['#updatedAt'] = 'updatedAt';
     expressionAttributeValues[':updatedAt'] = new Date().toISOString();
@@ -245,14 +247,14 @@ class DynamoOrderRepository {
     };
 
     const result = await this.dynamodb.query(params).promise();
-    
+
     const orders = [];
     for (const item of result.Items) {
       const order = this._transformFromDynamo(item);
       order.orderItems = await this.getOrderItems(order._id);
       orders.push(order);
     }
-    
+
     return orders;
   }
 
@@ -265,18 +267,19 @@ class DynamoOrderRepository {
       FilterExpression: 'EntityType = :type',
       ExpressionAttributeValues: {
         ':type': 'Order'
-      }
+      },
+      ConsistentRead: true
     };
 
     const result = await this.dynamodb.scan(params).promise();
-    
+
     const orders = [];
     for (const item of result.Items) {
       const order = this._transformFromDynamo(item);
       order.orderItems = await this.getOrderItems(order._id);
       orders.push(order);
     }
-    
+
     return orders;
   }
 }

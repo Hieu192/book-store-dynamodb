@@ -13,7 +13,7 @@ class DynamoCategoryRepository {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       convertEmptyValues: true
     });
-    
+
     this.tableName = 'BookStore';
   }
 
@@ -40,14 +40,14 @@ class DynamoCategoryRepository {
   _transformToDynamo(categoryData, id = null) {
     const categoryId = id ? String(id) : this._generateId();
     const timestamp = new Date().toISOString();
-    
+
     // Transform images - store path only
     const imageArray = Array.isArray(categoryData.images) ? categoryData.images : [];
     const images = imageArray.map(img => ({
       public_id: img.public_id,
       path: img.path || img.url  // Use path if available, fallback to url
     }));
-    
+
     return {
       ...this._getCategoryKeys(categoryId),
       GSI1PK: `NAME#${categoryData.name}`,
@@ -66,32 +66,32 @@ class DynamoCategoryRepository {
    */
   _transformFromDynamo(item) {
     if (!item) return null;
-    
+
     // Transform images - reconstruct full URL from path
     let images = [];
     if (item.images) {
-      const imageArray = Array.isArray(item.images) 
-        ? item.images 
+      const imageArray = Array.isArray(item.images)
+        ? item.images
         : (typeof item.images === 'object' ? Object.values(item.images) : []);
-      
+
       const cloudFrontUrl = process.env.CLOUDFRONT_URL || 'https://d13sqx61nhrgy0.cloudfront.net';
-      
+
       images = imageArray.map(img => {
         const imgData = img.M || img;
         const path = imgData.path?.S || imgData.path;
         const publicId = imgData.public_id?.S || imgData.public_id;
-        
-        const url = path && path.startsWith('/') 
-          ? `${cloudFrontUrl}${path}` 
+
+        const url = path && path.startsWith('/')
+          ? `${cloudFrontUrl}${path}`
           : path;
-        
+
         return {
           public_id: publicId,
           url: url
         };
       });
     }
-    
+
     return {
       _id: item.categoryId,
       name: item.name,
@@ -151,11 +151,11 @@ class DynamoCategoryRepository {
    */
   async update(id, updateData) {
     const keys = this._getCategoryKeys(id);
-    
+
     const updateExpressions = [];
     const expressionAttributeNames = {};
     const expressionAttributeValues = {};
-    
+
     Object.keys(updateData).forEach((key, index) => {
       const attrName = `#attr${index}`;
       const attrValue = `:val${index}`;
@@ -163,7 +163,7 @@ class DynamoCategoryRepository {
       expressionAttributeNames[attrName] = key;
       expressionAttributeValues[attrValue] = updateData[key];
     });
-    
+
     updateExpressions.push('#updatedAt = :updatedAt');
     expressionAttributeNames['#updatedAt'] = 'updatedAt';
     expressionAttributeValues[':updatedAt'] = new Date().toISOString();
@@ -185,6 +185,12 @@ class DynamoCategoryRepository {
    * Delete category
    */
   async delete(id) {
+    // Check if category exists
+    const category = await this.findById(id);
+    if (!category) {
+      return false;
+    }
+
     const params = {
       TableName: this.tableName,
       Key: this._getCategoryKeys(id)

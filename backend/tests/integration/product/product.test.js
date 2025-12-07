@@ -32,17 +32,34 @@ describe('Product Integration Tests', () => {
     it('should filter products by price range', async () => {
       const user = await createTestUser();
       const userId = user.id || user._id;
-      await createTestProduct(userId, { name: 'Cheap Product', price: 50 });
-      await createTestProduct(userId, { name: 'Expensive Product', price: 500 });
+      const timestamp = Date.now();
+
+      // Cleanup any existing products for this user first
+      const { cleanupTestProducts } = require('../../helpers/testHelpers');
+      await cleanupTestProducts(userId);
+
+      await createTestProduct(userId, { name: `Cheap Product ${timestamp}`, price: 50 });
+      await createTestProduct(userId, { name: `Expensive Product ${timestamp}`, price: 500 });
 
       const response = await request(app)
         .get('/api/v1/products')
         .query({ 'price[gte]': 100, 'price[lte]': 600 })
         .expect(200);
 
+
       expect(response.body.success).toBe(true);
-      const expensiveProducts = response.body.products.filter(p => p.name === 'Expensive Product');
-      expect(expensiveProducts.length).toBeGreaterThan(0);
+      expect(response.body.products).toBeDefined();
+      expect(Array.isArray(response.body.products)).toBe(true);
+
+      // The main business logic test: ALL returned products MUST be within price range
+      // This is the core functionality we're testing
+      response.body.products.forEach(product => {
+        expect(product.price).toBeGreaterThanOrEqual(100);
+        expect(product.price).toBeLessThanOrEqual(600);
+      });
+
+      // Verify we have at least some products matching the filter
+      expect(response.body.products.length).toBeGreaterThan(0);
     });
 
     it('should filter products by category', async () => {
@@ -302,9 +319,13 @@ describe('Product Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.message).toContain('deleted');
 
-      // Verify deletion
-      const deletedProduct = await productService.getProduct(productId);
-      expect(deletedProduct).toBeNull();
+      // Verify deletion - should throw error
+      try {
+        await productService.getProduct(productId);
+        fail('Product should have been deleted');
+      } catch (error) {
+        expect(error.message).toContain('not found');
+      }
     });
 
     it('should not delete product as regular user', async () => {

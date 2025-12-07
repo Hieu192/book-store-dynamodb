@@ -75,7 +75,14 @@ exports.updateCategory = catchAsyncErrors(async (req, res, next) => {
 // Delete category => /api/v1/movies/:genreID
 exports.deleteCategory = catchAsyncErrors(async (req, res, next) => {
   try {
-    await categoryService.deleteCategory(req.params.genreID);
+    const genreID = req.params.genreID;
+
+    // Validate ID format (should be at least 10 chars for DynamoDB IDs or MongoDB ObjectIds)
+    if (!genreID || genreID.length < 10 || /[^a-zA-Z0-9]/.test(genreID)) {
+      return next(new ErrorHandler('Invalid category ID format', 400));
+    }
+
+    await categoryService.deleteCategory(genreID);
 
     res.status(200).json({
       success: true,

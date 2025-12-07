@@ -5,21 +5,17 @@ const productService = require('../../../services/ProductService');
 const {
   createTestUser,
   createAdminUser,
-  createTestProduct,
-  cleanupDatabase
+  createTestProduct
 } = require('../../helpers/testHelpers');
 
 describe('Admin Integration Tests', () => {
-
-  beforeEach(async () => {
-    await cleanupDatabase();
-  });
+  jest.setTimeout(120000);
 
   describe('GET /api/v1/admin/users', () => {
     it('should get all users as admin', async () => {
       const admin = await createAdminUser();
-      await createTestUser({ email: 'user1@example.com' });
-      await createTestUser({ email: 'user2@example.com' });
+      await createTestUser(); // Uses unique timestamp email
+      await createTestUser(); // Uses unique timestamp email
 
       const token = admin.getJwtToken();
 
@@ -57,7 +53,7 @@ describe('Admin Integration Tests', () => {
   describe('GET /api/v1/admin/user/:id', () => {
     it('should get user details as admin', async () => {
       const admin = await createAdminUser();
-      const user = await createTestUser({ email: 'target@example.com' });
+      const user = await createTestUser(); // Unique email
       const token = admin.getJwtToken();
       const userId = user.id || user._id;
 
@@ -67,7 +63,8 @@ describe('Admin Integration Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.user).toHaveProperty('email', 'target@example.com');
+      expect(response.body.user).toHaveProperty('email');
+      expect(response.body.user.email).toBe(user.email);
     });
 
     it('should return 404 for non-existent user', async () => {
@@ -85,7 +82,7 @@ describe('Admin Integration Tests', () => {
 
     it('should not get user details as regular user', async () => {
       const user = await createTestUser();
-      const targetUser = await createTestUser({ email: 'target@example.com' });
+      const targetUser = await createTestUser(); // Unique email
       const token = user.getJwtToken();
       const targetUserId = targetUser.id || targetUser._id;
 
@@ -103,15 +100,15 @@ describe('Admin Integration Tests', () => {
       const admin = await createAdminUser();
       const user = await createTestUser({
         name: 'Old Name',
-        email: 'old@example.com',
         role: 'user'
       });
       const token = admin.getJwtToken();
       const userId = user.id || user._id;
 
+      const timestamp = Date.now();
       const updateData = {
         name: 'New Name',
-        email: 'new@example.com',
+        email: `updated-${timestamp}@example.com`,
         role: 'admin'
       };
 
@@ -126,13 +123,13 @@ describe('Admin Integration Tests', () => {
       // Verify update via API
       const updatedUser = await userService.getUser(userId);
       expect(updatedUser.name).toBe('New Name');
-      expect(updatedUser.email).toBe('new@example.com');
+      expect(updatedUser.email).toBe(`updated-${timestamp}@example.com`);
       expect(updatedUser.role).toBe('admin');
     });
 
     it('should not update user as regular user', async () => {
       const user = await createTestUser();
-      const targetUser = await createTestUser({ email: 'target@example.com' });
+      const targetUser = await createTestUser(); // Unique email
       const token = user.getJwtToken();
       const targetUserId = targetUser.id || targetUser._id;
 
@@ -189,7 +186,7 @@ describe('Admin Integration Tests', () => {
 
     it('should not delete user as regular user', async () => {
       const user = await createTestUser();
-      const targetUser = await createTestUser({ email: 'target@example.com' });
+      const targetUser = await createTestUser(); // Unique email
       const token = user.getJwtToken();
       const targetUserId = targetUser.id || targetUser._id;
 

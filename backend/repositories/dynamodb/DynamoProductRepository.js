@@ -8,7 +8,7 @@ const AWS = require('aws-sdk');
 class DynamoProductRepository extends IProductRepository {
   constructor() {
     super();
-    
+
     // Cấu hình DynamoDB
     this.dynamodb = new AWS.DynamoDB.DocumentClient({
       region: process.env.AWS_REGION || 'ap-southeast-1',
@@ -17,7 +17,7 @@ class DynamoProductRepository extends IProductRepository {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       convertEmptyValues: true
     });
-    
+
     this.tableName = 'BookStore';
   }
 
@@ -37,10 +37,10 @@ class DynamoProductRepository extends IProductRepository {
   _transformToDynamo(productData, id = null) {
     const productId = id ? String(id) : this._generateId();
     const timestamp = new Date().toISOString();
-    
+
     // Tính price range cho GSI2PK
     const priceRange = this._getPriceRange(productData.price);
-    
+
     // Transform images - store path only
     // Expects images to have 'path' field (e.g., /products/abc.jpg)
     const imageArray = Array.isArray(productData.images) ? productData.images : [];
@@ -48,10 +48,10 @@ class DynamoProductRepository extends IProductRepository {
       public_id: img.public_id,
       path: img.path || img.url  // Use path if available, fallback to url
     }));
-    
+
     // Generate normalized name for better search
     const nameNormalized = this._removeVietnameseAccents(productData.name.toLowerCase());
-    
+
     return {
       ...this._getProductKeys(productId),
       GSI1PK: `CATEGORY#${productData.category}`,
@@ -81,13 +81,13 @@ class DynamoProductRepository extends IProductRepository {
    */
   _transformFromDynamo(item) {
     if (!item) return null;
-    
+
     // Transform images - reconstruct full URL from path
     // Combine CloudFront URL with stored path
     let images = [];
     if (item.images) {
       let imageArray = [];
-      
+
       if (Array.isArray(item.images)) {
         imageArray = item.images;
       } else if (item.images.L) {
@@ -96,27 +96,27 @@ class DynamoProductRepository extends IProductRepository {
         // Handle object format like {'0': {...}, '1': {...}}
         imageArray = Object.values(item.images);
       }
-      
+
       const cloudFrontUrl = process.env.CLOUDFRONT_URL || 'https://d13sqx61nhrgy0.cloudfront.net';
-      
+
       images = imageArray.map(img => {
         // Handle DynamoDB Map format
         const imgData = img.M || img;
         const path = imgData.path?.S || imgData.path;
         const publicId = imgData.public_id?.S || imgData.public_id;
-        
+
         // Reconstruct full URL from CloudFront + path
-        const url = path && path.startsWith('/') 
-          ? `${cloudFrontUrl}${path}` 
+        const url = path && path.startsWith('/')
+          ? `${cloudFrontUrl}${path}`
           : path; // Fallback to path if it's already a full URL
-        
+
         return {
           public_id: publicId,
           url: url
         };
       });
     }
-    
+
     return {
       _id: item.productId,
       name: item.name,
@@ -159,11 +159,19 @@ class DynamoProductRepository extends IProductRepository {
   async findById(id) {
     const params = {
       TableName: this.tableName,
-      Key: this._getProductKeys(id)
+      Key: this._getProductKeys(id),
+      ConsistentRead: true
     };
 
     const result = await this.dynamodb.get(params).promise();
-    return this._transformFromDynamo(result.Item);
+    const product = this._transformFromDynamo(result.Item);
+
+    if (product) {
+      // Load reviews
+      product.reviews = await this.getProductReviews(id);
+    }
+
+    return product;
   }
 
   /**
@@ -182,7 +190,7 @@ class DynamoProductRepository extends IProductRepository {
     } = filters;
 
     let items = [];
-    
+
     // Query by category if provided
     if (category) {
       items = await this._queryByCategory(category, limit, page);
@@ -202,7 +210,7 @@ class DynamoProductRepository extends IProductRepository {
     }
 
     const totalCount = items.length;
-    
+
     // Handle pagination
     let paginatedItems;
     if (limit === 0 || limit === '0') {
@@ -307,18 +315,18 @@ class DynamoProductRepository extends IProductRepository {
     if (filters.keyword) {
       const keyword = filters.keyword.toLowerCase();
       const normalizedKeyword = this._removeVietnameseAccents(keyword);
-      
+
       filtered = filtered.filter(item => {
         const name = item.name.toLowerCase();
         const description = item.description.toLowerCase();
         const normalizedName = this._removeVietnameseAccents(name);
         const normalizedDescription = this._removeVietnameseAccents(description);
-        
+
         // Search in both original and normalized forms
         return name.includes(keyword) ||
-               description.includes(keyword) ||
-               normalizedName.includes(normalizedKeyword) ||
-               normalizedDescription.includes(normalizedKeyword);
+          description.includes(keyword) ||
+          normalizedName.includes(normalizedKeyword) ||
+          normalizedDescription.includes(normalizedKeyword);
       });
     }
 
@@ -356,12 +364,12 @@ class DynamoProductRepository extends IProductRepository {
    */
   async update(id, updateData) {
     const keys = this._getProductKeys(id);
-    
+
     // Build update expression
     const updateExpressions = [];
     const expressionAttributeNames = {};
     const expressionAttributeValues = {};
-    
+
     Object.keys(updateData).forEach((key, index) => {
       const attrName = `#attr${index}`;
       const attrValue = `:val${index}`;
@@ -369,7 +377,7 @@ class DynamoProductRepository extends IProductRepository {
       expressionAttributeNames[attrName] = key;
       expressionAttributeValues[attrValue] = updateData[key];
     });
-    
+
     // Always update timestamp
     updateExpressions.push('#updatedAt = :updatedAt');
     expressionAttributeNames['#updatedAt'] = 'updatedAt';
@@ -432,7 +440,7 @@ class DynamoProductRepository extends IProductRepository {
    */
   async updateStock(id, quantity) {
     const product = await this.findById(id);
-    
+
     if (!product) {
       throw new Error('Product not found');
     }
@@ -453,7 +461,7 @@ class DynamoProductRepository extends IProductRepository {
     // In DynamoDB, reviews are separate items
     const reviewId = this._generateId();
     const timestamp = new Date().toISOString();
-    
+
     const reviewItem = {
       PK: `PRODUCT#${productId}`,
       SK: `REVIEW#${review.user}`,
@@ -485,7 +493,7 @@ class DynamoProductRepository extends IProductRepository {
    */
   async _updateProductRatings(productId) {
     const reviews = await this.getReviews(productId);
-    
+
     const numOfReviews = reviews.length;
     const ratings = numOfReviews > 0
       ? reviews.reduce((acc, r) => acc + r.rating, 0) / numOfReviews
@@ -508,7 +516,7 @@ class DynamoProductRepository extends IProductRepository {
     };
 
     const result = await this.dynamodb.query(params).promise();
-    
+
     return result.Items.map(item => ({
       _id: item.reviewId,
       user: item.userId,
@@ -526,7 +534,7 @@ class DynamoProductRepository extends IProductRepository {
     // Find review by reviewId
     const reviews = await this.getReviews(productId);
     const review = reviews.find(r => r._id === reviewId);
-    
+
     if (!review) {
       throw new Error('Review not found');
     }
@@ -553,7 +561,7 @@ class DynamoProductRepository extends IProductRepository {
   async getRelatedProducts(productId, limit = 6) {
     try {
       const product = await this.findById(productId);
-      
+
       if (!product) {
         return [];
       }
@@ -570,7 +578,7 @@ class DynamoProductRepository extends IProductRepository {
       };
 
       const result = await this.dynamodb.query(params).promise();
-      
+
       // Filter out current product and transform
       const relatedProducts = result.Items
         .filter(item => item.productId !== productId)
@@ -647,6 +655,80 @@ class DynamoProductRepository extends IProductRepository {
       console.error('Error getting products by IDs:', error);
       return [];
     }
+  }
+
+  /**
+   * Get all reviews for a product
+   */
+  async getProductReviews(productId) {
+    const params = {
+      TableName: this.tableName,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+      ExpressionAttributeValues: {
+        ':pk': `PRODUCT#${productId}`,
+        ':sk': 'REVIEW#'
+      }
+    };
+
+    const result = await this.dynamodb.query(params).promise();
+
+    return result.Items.map(item => ({
+      user: item.userId,
+      name: item.userName || 'Anonymous',
+      rating: item.rating,
+      comment: item.comment,
+      createdAt: item.createdAt
+    }));
+  }
+
+  /**
+   * Delete all products for a specific user (for test cleanup)
+   */
+  async deleteProductsByUser(userId) {
+    // Query all products by this user
+    const params = {
+      TableName: this.tableName,
+      IndexName: 'GSI1',
+      KeyConditionExpression: 'GSI1PK = :userId',
+      ExpressionAttributeValues: {
+        ':userId': `USER#${userId}`
+      }
+    };
+
+    const result = await this.dynamodb.query(params).promise();
+
+    // Delete each product and its reviews
+    for (const item of result.Items) {
+      if (item.EntityType === 'Product') {
+        const productId = item.productId;
+
+        // Delete product reviews first
+        const reviewParams = {
+          TableName: this.tableName,
+          KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+          ExpressionAttributeValues: {
+            ':pk': `PRODUCT#${productId}`,
+            ':sk': 'REVIEW#'
+          }
+        };
+
+        const reviews = await this.dynamodb.query(reviewParams).promise();
+        for (const review of reviews.Items) {
+          await this.dynamodb.delete({
+            TableName: this.tableName,
+            Key: { PK: review.PK, SK: review.SK }
+          }).promise();
+        }
+
+        // Delete product metadata
+        await this.dynamodb.delete({
+          TableName: this.tableName,
+          Key: this._getProductKeys(productId)
+        }).promise();
+      }
+    }
+
+    return true;
   }
 }
 

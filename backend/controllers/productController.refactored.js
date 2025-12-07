@@ -10,7 +10,29 @@ const catchAsyncErrors = require('../middlewares/catchAsyncErrors');
 
 // Get all products => /api/v1/products
 exports.getProducts = catchAsyncErrors(async (req, res, next) => {
-  const result = await productService.getProducts(req.query);
+  // Parse query params for filters
+  const filters = { ...req.query };
+
+  // Parse price[gte], price[lte] to { price: { gte, lte } }
+  if (req.query['price[gte]'] || req.query['price[lte]']) {
+    filters.price = {};
+    if (req.query['price[gte]']) {
+      filters.price.gte = parseFloat(req.query['price[gte]']);
+      delete filters['price[gte]'];
+    }
+    if (req.query['price[lte]']) {
+      filters.price.lte = parseFloat(req.query['price[lte]']);
+      delete filters['price[lte]'];
+    }
+  }
+
+  // Parse ratings[gte] to { ratings: { gte } }
+  if (req.query['ratings[gte]']) {
+    filters.ratings = { gte: parseFloat(req.query['ratings[gte]']) };
+    delete filters['ratings[gte]'];
+  }
+
+  const result = await productService.getProducts(filters);
 
   res.status(200).json({
     success: true,
@@ -26,7 +48,14 @@ exports.getProducts = catchAsyncErrors(async (req, res, next) => {
 // Get single product => /api/v1/product/:id
 exports.getSingleProduct = catchAsyncErrors(async (req, res, next) => {
   try {
-    const product = await productService.getProduct(req.params.id);
+    const productId = req.params.id;
+
+    // Validate ID format
+    if (!productId || productId.length < 10 || /[^a-zA-Z0-9]/.test(productId)) {
+      return next(new ErrorHandler('Invalid product ID format', 400));
+    }
+
+    const product = await productService.getProduct(productId);
 
     res.status(200).json({
       success: true,
@@ -59,7 +88,7 @@ exports.newProduct = catchAsyncErrors(async (req, res, next) => {
     imagesLinks = await uploadMultipleImages(images, "products");
 
     req.body.images = imagesLinks;
-    
+
     const product = await productService.createProduct(req.body, req.user.id);
 
     res.status(201).json({
@@ -218,7 +247,7 @@ exports.getProductsByIds = catchAsyncErrors(async (req, res, next) => {
 exports.trackProductView = catchAsyncErrors(async (req, res, next) => {
   const viewTracker = require('../utils/viewTracker');
   const sessionId = req.sessionID || req.headers['x-session-id'] || req.ip;
-  
+
   viewTracker.trackView(sessionId, req.params.id);
 
   res.status(200).json({
@@ -231,10 +260,10 @@ exports.trackProductView = catchAsyncErrors(async (req, res, next) => {
 exports.getAlsoViewed = catchAsyncErrors(async (req, res, next) => {
   const viewTracker = require('../utils/viewTracker');
   const limit = parseInt(req.query.limit) || 6;
-  
+
   const alsoViewedData = viewTracker.getAlsoViewed(req.params.id, limit);
   const productIds = alsoViewedData.map(item => item.productId);
-  
+
   // Get actual product data
   const products = await productService.getProductsByIds(productIds);
 
@@ -256,7 +285,7 @@ exports.getFrequentlyBoughtTogether = catchAsyncErrors(async (req, res, next) =>
 
   // Count product co-occurrences
   const productCounts = {};
-  
+
   orders.forEach(order => {
     order.orderItems.forEach(item => {
       if (item.product.toString() !== productId) {

@@ -1,6 +1,8 @@
 // Import Services (singleton instances)
 const userService = require('../../services/UserService');
 const productService = require('../../services/ProductService');
+const orderService = require('../../services/OrderService');
+const categoryService = require('../../services/CategoryService');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
@@ -79,7 +81,8 @@ const createTestCategory = async (categoryData = {}) => {
     }]
   };
 
-  const category = await Category.create({ ...defaultCategory, ...categoryData });
+  // Use CategoryService
+  const category = await categoryService.createCategory({ ...defaultCategory, ...categoryData });
   return category;
 };
 
@@ -113,7 +116,8 @@ const createTestOrder = async (userId, orderData = {}) => {
     orderStatus: 'Processing'
   };
 
-  const order = await Order.create({ ...defaultOrder, ...orderData });
+  // Use OrderService
+  const order = await orderService.createOrder({ ...defaultOrder, ...orderData });
   return order;
 };
 
@@ -158,6 +162,18 @@ const extractCookie = (response, cookieName = 'token') => {
   return cookie.split(';')[0].split('=')[1];
 };
 
+// Helper to cleanup test products for a specific user
+const cleanupTestProducts = async (userId) => {
+  if (process.env.MIGRATION_PHASE === 'DYNAMODB_ONLY') {
+    const DynamoProductRepository = require('../../repositories/dynamodb/DynamoProductRepository');
+    const repo = new DynamoProductRepository();
+    await repo.deleteProductsByUser(userId);
+  } else {
+    // MongoDB cleanup
+    await Product.deleteMany({ user: userId });
+  }
+};
+
 module.exports = {
   createTestUser,
   createAdminUser,
@@ -166,5 +182,6 @@ module.exports = {
   createTestOrder,
   getAuthToken,
   cleanupDatabase,
+  cleanupTestProducts,
   extractCookie
 };
