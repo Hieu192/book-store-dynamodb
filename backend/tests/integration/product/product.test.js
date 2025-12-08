@@ -186,6 +186,16 @@ describe('Product Integration Tests', () => {
       const admin = await createAdminUser();
       const token = admin.getJwtToken();
 
+      // ✅ BUSINESS RULE: Create category first before creating product
+      const categoryService = require('../../../services/CategoryService');
+      await categoryService.createCategory({
+        name: 'Electronics',
+        images: [{
+          public_id: 'test_electronics',
+          url: 'https://example.com/electronics.jpg'
+        }]
+      });
+
       const productData = {
         name: 'New Product',
         price: 199.99,

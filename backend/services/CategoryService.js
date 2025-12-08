@@ -19,20 +19,20 @@ class CategoryService {
    */
   _getRepository() {
     const phase = this.migrationManager.getCurrentPhase();
-    
+
     switch (phase) {
       case 'MONGODB_ONLY':
         return this.mongoRepo;
-      
+
       case 'DUAL_WRITE_MONGO_PRIMARY':
         return this._createDualWriteProxy(this.mongoRepo, this.dynamoRepo);
-      
+
       case 'DUAL_WRITE_DYNAMO_PRIMARY':
         return this._createDualWriteProxy(this.dynamoRepo, this.mongoRepo);
-      
+
       case 'DYNAMODB_ONLY':
         return this.dynamoRepo;
-      
+
       default:
         return this.mongoRepo;
     }
@@ -43,11 +43,11 @@ class CategoryService {
    */
   _createDualWriteProxy(primaryRepo, secondaryRepo) {
     const self = this;
-    
+
     return new Proxy(primaryRepo, {
       get(target, prop) {
         const originalMethod = target[prop];
-        
+
         if (typeof originalMethod !== 'function') {
           return originalMethod;
         }
@@ -61,16 +61,16 @@ class CategoryService {
         // Write operations - dual write
         const writeOps = ['create', 'update', 'delete'];
         if (writeOps.includes(prop)) {
-          return async function(...args) {
+          return async function (...args) {
             try {
               // Write to primary first
               const primaryResult = await originalMethod.apply(target, args);
-              
+
               // Write to secondary (async, don't wait)
               secondaryRepo[prop](...args).catch(err => {
                 console.error(`❌ Secondary write failed (${prop}):`, err.message);
               });
-              
+
               return primaryResult;
             } catch (error) {
               console.error(`❌ Primary write failed (${prop}):`, error.message);
@@ -98,12 +98,29 @@ class CategoryService {
   async getCategory(id) {
     const repo = this._getRepository();
     const category = await repo.findById(id);
-    
+
     if (!category) {
       throw new Error('Category not found');
     }
-    
+
     return category;
+  }
+
+  /**
+   * Get category by name
+   * ✅ Used for validation when creating/updating products
+   */
+  async getCategoryByName(name) {
+    const repo = this._getRepository();
+
+    // Try to find by name
+    if (typeof repo.findByName === 'function') {
+      return await repo.findByName(name);
+    }
+
+    // Fallback: get all and filter
+    const categories = await repo.findAll();
+    return categories.find(cat => cat.name === name);
   }
 
   /**
@@ -120,11 +137,11 @@ class CategoryService {
   async updateCategory(id, updateData) {
     const repo = this._getRepository();
     const category = await repo.update(id, updateData);
-    
+
     if (!category) {
       throw new Error('Category not found');
     }
-    
+
     return category;
   }
 
@@ -135,11 +152,11 @@ class CategoryService {
     const repo = this._getRepository();
     try {
       const result = await repo.delete(id);
-      
+
       if (!result) {
         throw new Error('Category not found');
       }
-      
+
       return result;
     } catch (error) {
       // Re-throw CastError for invalid ObjectId

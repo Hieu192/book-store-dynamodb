@@ -66,8 +66,39 @@ const createTestProduct = async (userId, productData = {}) => {
     user: userId
   };
 
+  const finalProductData = { ...defaultProduct, ...productData };
+
+  // ✅ BUSINESS RULE: Ensure category exists before creating product
+  if (finalProductData.category) {
+    try {
+      // Check if category exists
+      const existingCategory = await categoryService.getCategoryByName(finalProductData.category);
+      if (!existingCategory) {
+        // Create category if it doesn't exist
+        await categoryService.createCategory({
+          name: finalProductData.category,
+          images: [{
+            public_id: `test_category_${finalProductData.category}`,
+            url: 'https://example.com/category.jpg'
+          }]
+        });
+        console.log(`✅ Auto-created category: ${finalProductData.category}`);
+      }
+    } catch (error) {
+      // Category doesn't exist, create it
+      await categoryService.createCategory({
+        name: finalProductData.category,
+        images: [{
+          public_id: `test_category_${finalProductData.category}`,
+          url: 'https://example.com/category.jpg'
+        }]
+      });
+      console.log(`✅ Auto-created category: ${finalProductData.category}`);
+    }
+  }
+
   // Use ProductService (supports migration phases)
-  const product = await productService.createProduct({ ...defaultProduct, ...productData });
+  const product = await productService.createProduct(finalProductData, userId);
   return product;
 };
 
@@ -162,9 +193,56 @@ const cleanupDatabase = async () => {
   }
 
   if (phase.includes('DYNAMO')) {
-    // Clean DynamoDB - need to implement scan & delete
-    // For now, skip (DynamoDB cleanup is complex)
-    console.log('⚠️  DynamoDB cleanup not implemented yet');
+    // ✅ IMPROVED: Clean DynamoDB - scan ALL pages and delete all items
+    const AWS = require('aws-sdk');
+    const dynamodb = new AWS.DynamoDB.DocumentClient({
+      region: process.env.AWS_REGION || 'ap-southeast-1',
+      endpoint: process.env.DYNAMODB_ENDPOINT || undefined,
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    });
+
+    const tableName = 'BookStore';
+    let totalDeleted = 0;
+
+    try {
+      let lastEvaluatedKey = null;
+
+      // ✅ Scan ALL pages (DynamoDB returns max 1MB per scan)
+      do {
+        const scanParams = {
+          TableName: tableName,
+          ...(lastEvaluatedKey && { ExclusiveStartKey: lastEvaluatedKey })
+        };
+
+        const scanResult = await dynamodb.scan(scanParams).promise();
+
+        // Delete items from this page
+        if (scanResult.Items && scanResult.Items.length > 0) {
+          const deletePromises = scanResult.Items.map(item => {
+            return dynamodb.delete({
+              TableName: tableName,
+              Key: {
+                PK: item.PK,
+                SK: item.SK
+              }
+            }).promise();
+          });
+
+          await Promise.all(deletePromises);
+          totalDeleted += scanResult.Items.length;
+        }
+
+        lastEvaluatedKey = scanResult.LastEvaluatedKey;
+
+      } while (lastEvaluatedKey); // Continue until no more items
+
+      if (totalDeleted > 0) {
+        console.log(`🗑️  Cleaned ${totalDeleted} items from DynamoDB`);
+      }
+    } catch (error) {
+      console.log('⚠️  DynamoDB cleanup error:', error.message);
+    }
   }
 };
 

@@ -5,12 +5,16 @@
 
 const request = require('supertest');
 const app = require('../../app');
-const User = require('../../models/user');
-const Product = require('../../models/product');
-const Order = require('../../models/order');
-const { cleanupDatabase } = require('../helpers/testHelpers');
+const userService = require('../../services/UserService');
+const productService = require('../../services/ProductService');
+const orderService = require('../../services/OrderService');
+const { cleanupDatabase, createTestUser } = require('../helpers/testHelpers');
 
 describe('E2E: Admin Journey', () => {
+  const timestamp = Date.now();
+  const adminEmail = `admin-${timestamp}@example.com`;
+  const userEmail = `user-${timestamp}@example.com`;
+
   let adminToken;
   let adminId;
   let userToken;
@@ -30,22 +34,22 @@ describe('E2E: Admin Journey', () => {
     test('should create admin user', async () => {
       // Sample base64 image (1x1 red pixel PNG)
       const sampleAvatar = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
-      
+
       const response = await request(app)
         .post('/api/v1/register')
         .send({
-          name: 'Admin User',
-          email: 'admin@example.com',
+          name: `Admin User ${timestamp}`,
+          email: adminEmail,
           password: 'admin123',
           avatar: sampleAvatar
         })
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      adminId = response.body.user._id;
+      adminId = response.body.user._id || response.body.user.id;
 
-      // Manually set role to admin
-      await User.findByIdAndUpdate(adminId, { role: 'admin' });
+      // Use service to update role to admin
+      await userService.updateUser(adminId, { role: 'admin' });
 
       console.log('✅ Admin user created');
     });
@@ -54,7 +58,7 @@ describe('E2E: Admin Journey', () => {
       const response = await request(app)
         .post('/api/v1/login')
         .send({
-          email: 'admin@example.com',
+          email: adminEmail,
           password: 'admin123'
         })
         .expect(200);
@@ -69,18 +73,18 @@ describe('E2E: Admin Journey', () => {
     test('should create regular user for testing', async () => {
       // Sample base64 image (1x1 red pixel PNG)
       const sampleAvatar = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
-      
+
       const response = await request(app)
         .post('/api/v1/register')
         .send({
-          name: 'Regular User',
-          email: 'user@example.com',
+          name: `Regular User ${timestamp}`,
+          email: userEmail,
           password: 'user123',
           avatar: sampleAvatar
         })
         .expect(200);
 
-      userId = response.body.user._id;
+      userId = response.body.user._id || response.body.user.id;
       const cookies = response.headers['set-cookie'];
       userToken = cookies[0].split(';')[0].split('=')[1];
 
@@ -94,7 +98,7 @@ describe('E2E: Admin Journey', () => {
         .post('/api/v1/admin/product/new')
         .set('Cookie', [`token=${adminToken}`])
         .send({
-          name: 'Admin Test Product',
+          name: `Admin Test Product ${timestamp}`,
           price: 199.99,
           description: 'Product created by admin',
           category: 'Electronics',
@@ -105,7 +109,7 @@ describe('E2E: Admin Journey', () => {
         .expect(201);
 
       expect(response.body.success).toBe(true);
-      productId = response.body.product._id;
+      productId = response.body.product._id || response.body.product.id;
 
       console.log('✅ Product created by admin');
     });
@@ -127,7 +131,7 @@ describe('E2E: Admin Journey', () => {
         .put(`/api/v1/admin/product/${productId}`)
         .set('Cookie', [`token=${adminToken}`])
         .send({
-          name: 'Updated Admin Product',
+          name: `Updated Admin Product ${timestamp}`,
           price: 249.99,
           description: 'Updated by admin',
           category: 'Electronics',
@@ -138,7 +142,7 @@ describe('E2E: Admin Journey', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.product.name).toBe('Updated Admin Product');
+      expect(response.body.product.name).toBe(`Updated Admin Product ${timestamp}`);
 
       console.log('✅ Product updated by admin');
     });
@@ -179,7 +183,7 @@ describe('E2E: Admin Journey', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.user.email).toBe('user@example.com');
+      expect(response.body.user.email).toBe(userEmail);
 
       console.log('✅ User details retrieved by admin');
     });
@@ -189,30 +193,30 @@ describe('E2E: Admin Journey', () => {
         .put(`/api/v1/admin/user/${userId}`)
         .set('Cookie', [`token=${adminToken}`])
         .send({
-          name: 'Regular User',
-          email: 'user@example.com',
+          name: `Regular User ${timestamp}`,
+          email: userEmail,
           role: 'admin'
         })
         .expect(200);
 
       expect(response.body.success).toBe(true);
 
-      // Verify role change
-      const user = await User.findById(userId);
+      // Verify role change using service
+      const user = await userService.getUser(userId);
       expect(user.role).toBe('admin');
 
       console.log('✅ User role updated by admin');
     });
 
     test('regular user should not access admin routes', async () => {
-      // Reset user role back to 'user' (was changed to admin in previous test)
-      await User.findByIdAndUpdate(userId, { role: 'user' });
+      // Reset user role back to 'user' using service
+      await userService.updateUser(userId, { role: 'user' });
 
       // Login again to get new token with user role
       const loginResponse = await request(app)
         .post('/api/v1/login')
         .send({
-          email: 'user@example.com',
+          email: userEmail,
           password: 'user123'
         });
 
@@ -232,8 +236,8 @@ describe('E2E: Admin Journey', () => {
 
   describe('4. Order Management', () => {
     beforeAll(async () => {
-      // Create test order
-      const order = await Order.create({
+      // Create test order using service
+      const order = await orderService.createOrder({
         shippingInfo: {
           address: '123 Admin Street',
           city: 'Admin City',
@@ -243,14 +247,14 @@ describe('E2E: Admin Journey', () => {
         },
         user: userId,
         orderItems: [{
-          name: 'Admin Test Product',
+          name: `Admin Test Product ${timestamp}`,
           quantity: 1,
           image: 'https://example.com/product.jpg',
           price: 199.99,
           product: productId
         }],
         paymentInfo: {
-          id: 'test_payment_id',
+          id: `test_payment_${timestamp}`,
           status: 'succeeded'
         },
         paidAt: Date.now(),
@@ -258,9 +262,9 @@ describe('E2E: Admin Journey', () => {
         taxPrice: 9.99,
         shippingPrice: 25000,
         totalPrice: 25209.98,
-        orderCode: Math.floor(Math.random() * 1000000) // Add required orderCode
+        orderCode: timestamp
       });
-      orderId = order._id;
+      orderId = order._id || order.id;
     });
 
     test('should get all orders as admin', async () => {
@@ -314,9 +318,9 @@ describe('E2E: Admin Journey', () => {
     });
 
     test('regular user should not delete product', async () => {
-      // Create another product first
-      const product = await Product.create({
-        name: 'Test Product',
+      // Create another product using service
+      const product = await productService.createProduct({
+        name: `Test Product ${timestamp}`,
         price: 99.99,
         description: 'Test',
         category: 'Test',
@@ -327,20 +331,22 @@ describe('E2E: Admin Journey', () => {
       });
 
       // Reset user role and get new token
-      await User.findByIdAndUpdate(userId, { role: 'user' });
+      await userService.updateUser(userId, { role: 'user' });
 
       const loginResponse = await request(app)
         .post('/api/v1/login')
         .send({
-          email: 'user@example.com',
+          email: userEmail,
           password: 'user123'
         });
 
       const cookies = loginResponse.headers['set-cookie'];
       const newUserToken = cookies[0].split(';')[0].split('=')[1];
 
+      const testProductId = product._id || product.id;
+
       const response = await request(app)
-        .delete(`/api/v1/admin/product/${product._id}`)
+        .delete(`/api/v1/admin/product/${testProductId}`)
         .set('Cookie', [`token=${newUserToken}`])
         .expect(403);
 

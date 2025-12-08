@@ -232,13 +232,17 @@ class DynamoProductRepository extends IProductRepository {
 
   /**
    * Query products by category using GSI1
-   * Note: This queries ALL items in category, not just limit * page
+   * ✅ OPTIMIZED: Limit items early to reduce RCU consumption
    */
   async _queryByCategory(category, limit, page) {
     let items = [];
     let lastEvaluatedKey = null;
 
-    // Keep querying until we get all items
+    // ✅ Handle limit = 0 (get ALL items)
+    const shouldGetAll = (limit === 0 || limit === '0');
+    const maxItemsNeeded = shouldGetAll ? Infinity : (limit * page);
+
+    // ✅ OPTIMIZATION: Stop querying when we have enough items
     do {
       const params = {
         TableName: this.tableName,
@@ -250,7 +254,11 @@ class DynamoProductRepository extends IProductRepository {
         ScanIndexForward: false // Newest first
       };
 
-      // Add ExclusiveStartKey for pagination
+      // Only set Limit if not getting all items
+      if (!shouldGetAll) {
+        params.Limit = Math.min(1000, maxItemsNeeded - items.length);
+      }
+
       if (lastEvaluatedKey) {
         params.ExclusiveStartKey = lastEvaluatedKey;
       }
@@ -259,20 +267,34 @@ class DynamoProductRepository extends IProductRepository {
       items = items.concat(result.Items);
       lastEvaluatedKey = result.LastEvaluatedKey;
 
-    } while (lastEvaluatedKey); // Continue until no more items
+      // ✅ STOP EARLY when we have enough items (unless getting all)
+      if (!shouldGetAll && items.length >= maxItemsNeeded) {
+        break;
+      }
+
+      // ✅ STOP when no more items
+      if (!lastEvaluatedKey) {
+        break;
+      }
+
+    } while (true);
 
     return items;
   }
 
   /**
    * Scan all products (fallback, expensive)
-   * Note: This scans ALL items, not just limit * page
+   * ✅ OPTIMIZED: Limit items early to reduce RCU consumption
    */
-  async _scanProducts(limit, page) {
+  async _scanProducts(limit, page, cursor = null) {
     let items = [];
-    let lastEvaluatedKey = null;
+    let lastEvaluatedKey = cursor ? JSON.parse(Buffer.from(cursor, 'base64').toString()) : null;
 
-    // Keep scanning until we get all items
+    // ✅ Handle limit = 0 (get ALL items)
+    const shouldGetAll = (limit === 0 || limit === '0');
+    const maxItemsNeeded = shouldGetAll ? Infinity : (limit * page);
+
+    // ✅ OPTIMIZATION: Stop scanning when we have enough items
     do {
       const params = {
         TableName: this.tableName,
@@ -282,7 +304,11 @@ class DynamoProductRepository extends IProductRepository {
         }
       };
 
-      // Add ExclusiveStartKey for pagination
+      // Only set Limit if not getting all items
+      if (!shouldGetAll) {
+        params.Limit = Math.min(1000, maxItemsNeeded - items.length);
+      }
+
       if (lastEvaluatedKey) {
         params.ExclusiveStartKey = lastEvaluatedKey;
       }
@@ -291,7 +317,17 @@ class DynamoProductRepository extends IProductRepository {
       items = items.concat(result.Items);
       lastEvaluatedKey = result.LastEvaluatedKey;
 
-    } while (lastEvaluatedKey); // Continue until no more items
+      // ✅ STOP EARLY when we have enough items (unless getting all)
+      if (!shouldGetAll && items.length >= maxItemsNeeded) {
+        break;
+      }
+
+      // ✅ STOP when no more items
+      if (!lastEvaluatedKey) {
+        break;
+      }
+
+    } while (true);
 
     return items;
   }
@@ -776,6 +812,99 @@ class DynamoProductRepository extends IProductRepository {
     }
 
     return true;
+  }
+
+  /**
+   * ✅ NEW: Cursor-based pagination for products
+   * More efficient than page-based pagination
+   * @param {Object} filters - Search filters
+   * @param {number} limit - Items per request
+   * @param {string} cursor - Base64 encoded cursor
+   * @returns {Object} { products, nextCursor, hasMore }
+   */
+  async findAllWithCursor(filters = {}, limit = 20, cursor = null) {
+    const {
+      keyword,
+      category,
+      price,
+      ratings,
+      sortByPrice
+    } = filters;
+
+    let exclusiveStartKey = null;
+    if (cursor) {
+      try {
+        exclusiveStartKey = JSON.parse(Buffer.from(cursor, 'base64').toString());
+      } catch (error) {
+        console.error('Invalid cursor:', error.message);
+      }
+    }
+
+    let items = [];
+    let lastEvaluatedKey = null;
+
+    // Query by category if provided
+    if (category) {
+      const params = {
+        TableName: this.tableName,
+        IndexName: 'GSI1',
+        KeyConditionExpression: 'GSI1PK = :category',
+        ExpressionAttributeValues: {
+          ':category': `CATEGORY#${category}`
+        },
+        ScanIndexForward: false,
+        Limit: limit
+      };
+
+      if (exclusiveStartKey) {
+        params.ExclusiveStartKey = exclusiveStartKey;
+      }
+
+      const result = await this.dynamodb.query(params).promise();
+      items = result.Items;
+      lastEvaluatedKey = result.LastEvaluatedKey;
+    } else {
+      // Scan all products
+      const params = {
+        TableName: this.tableName,
+        FilterExpression: 'EntityType = :type',
+        ExpressionAttributeValues: {
+          ':type': 'Product'
+        },
+        Limit: limit * 2 // Get more to allow for filtering
+      };
+
+      if (exclusiveStartKey) {
+        params.ExclusiveStartKey = exclusiveStartKey;
+      }
+
+      const result = await this.dynamodb.scan(params).promise();
+      items = result.Items;
+      lastEvaluatedKey = result.LastEvaluatedKey;
+    }
+
+    // Apply client-side filters
+    items = this._applyFilters(items, { keyword, price, ratings });
+
+    // Sort
+    if (sortByPrice) {
+      const isAscending = sortByPrice === 'asc' || sortByPrice === '1' || sortByPrice === 1;
+      items.sort((a, b) => isAscending ? a.price - b.price : b.price - a.price);
+    }
+
+    // Take only limit items (after filtering)
+    const resultItems = items.slice(0, limit);
+
+    // Generate next cursor if there are more items
+    const nextCursor = lastEvaluatedKey
+      ? Buffer.from(JSON.stringify(lastEvaluatedKey)).toString('base64')
+      : null;
+
+    return {
+      products: resultItems.map(item => this._transformFromDynamo(item)),
+      nextCursor,
+      hasMore: !!lastEvaluatedKey || items.length > limit
+    };
   }
 }
 

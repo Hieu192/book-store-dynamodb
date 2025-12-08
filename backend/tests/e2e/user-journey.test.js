@@ -5,12 +5,16 @@
 
 const request = require('supertest');
 const app = require('../../app');
-const User = require('../../models/user');
-const Product = require('../../models/product');
-const Order = require('../../models/order');
-const { cleanupDatabase } = require('../helpers/testHelpers');
+const {
+  cleanupDatabase,
+  createTestUser,
+  createTestProduct
+} = require('../helpers/testHelpers');
 
 describe('E2E: Complete User Journey', () => {
+  const timestamp = Date.now();
+  const testEmail = `e2e-user-${timestamp}@example.com`;
+
   let userToken;
   let userId;
   let productId;
@@ -28,25 +32,25 @@ describe('E2E: Complete User Journey', () => {
     test('should register a new user', async () => {
       // Sample base64 image (1x1 red pixel PNG)
       const sampleAvatar = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
-      
+
       const response = await request(app)
         .post('/api/v1/register')
         .send({
-          name: 'E2E Test User',
-          email: 'e2e-test@example.com',
+          name: `E2E Test User ${timestamp}`,
+          email: testEmail,
           password: 'password123',
           avatar: sampleAvatar
         })
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.user).toHaveProperty('email', 'e2e-test@example.com');
+      expect(response.body.user).toHaveProperty('email', testEmail);
       expect(response.headers['set-cookie']).toBeDefined();
 
       // Save token for later use
       const cookies = response.headers['set-cookie'];
       userToken = cookies[0].split(';')[0].split('=')[1];
-      userId = response.body.user._id;
+      userId = response.body.user._id || response.body.user.id;
 
       console.log('✅ User registered successfully');
     });
@@ -55,13 +59,13 @@ describe('E2E: Complete User Journey', () => {
       const response = await request(app)
         .post('/api/v1/login')
         .send({
-          email: 'e2e-test@example.com',
+          email: testEmail,
           password: 'password123'
         })
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.user.email).toBe('e2e-test@example.com');
+      expect(response.body.user.email).toBe(testEmail);
 
       console.log('✅ User logged in successfully');
     });
@@ -73,7 +77,7 @@ describe('E2E: Complete User Journey', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.user.email).toBe('e2e-test@example.com');
+      expect(response.body.user.email).toBe(testEmail);
 
       console.log('✅ User profile retrieved');
     });
@@ -81,23 +85,17 @@ describe('E2E: Complete User Journey', () => {
 
   describe('2. Browse Products', () => {
     beforeAll(async () => {
-      // Create test products
-      const user = await User.findById(userId);
-      const product = await Product.create({
-        name: 'E2E Test Product',
+      // Use service to create test product
+      const product = await createTestProduct(userId, {
+        name: `E2E Test Product ${timestamp}`,
         price: 99.99,
         description: 'Test product for E2E testing',
         category: 'Electronics',
         seller: 'E2E Seller',
         stock: 10,
-        ratings: 4.5,
-        images: [{
-          public_id: 'test_product',
-          url: 'https://example.com/product.jpg'
-        }],
-        user: user._id
+        ratings: 4.5
       });
-      productId = product._id;
+      productId = product._id || product.id;
     });
 
     test('should get all products', async () => {
@@ -117,7 +115,7 @@ describe('E2E: Complete User Journey', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.product.name).toBe('E2E Test Product');
+      expect(response.body.product.name).toBe(`E2E Test Product ${timestamp}`);
 
       console.log('✅ Product details retrieved');
     });
@@ -181,7 +179,7 @@ describe('E2E: Complete User Journey', () => {
     test('should create an order', async () => {
       const orderData = {
         orderItems: [{
-          name: 'E2E Test Product',
+          name: `E2E Test Product ${timestamp}`,
           quantity: 2,
           image: 'https://example.com/product.jpg',
           price: 99.99,
@@ -198,7 +196,7 @@ describe('E2E: Complete User Journey', () => {
         taxPrice: 9.99,
         shippingPrice: 25000,
         totalPrice: 25209.97,
-        orderCode: Math.floor(Math.random() * 1000000) // Add required orderCode
+        orderCode: timestamp
       };
 
       const response = await request(app)
@@ -209,7 +207,7 @@ describe('E2E: Complete User Journey', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.order).toBeDefined();
-      orderId = response.body.order._id;
+      orderId = response.body.order._id || response.body.order.id;
 
       console.log('✅ Order created successfully');
     });
@@ -222,7 +220,6 @@ describe('E2E: Complete User Journey', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.orders).toBeDefined();
-      // Orders might be empty if order creation failed
       expect(Array.isArray(response.body.orders)).toBe(true);
 
       console.log('✅ User orders retrieved');
@@ -252,15 +249,15 @@ describe('E2E: Complete User Journey', () => {
         .put('/api/v1/me/update')
         .set('Cookie', [`token=${userToken}`])
         .send({
-          name: 'E2E Updated User',
-          email: 'e2e-test@example.com'
+          name: `E2E Updated User ${timestamp}`,
+          email: testEmail
         })
         .expect(200);
 
       expect(response.body.success).toBe(true);
       // Response might not include user object, just check success
       if (response.body.user) {
-        expect(response.body.user.name).toBe('E2E Updated User');
+        expect(response.body.user.name).toBe(`E2E Updated User ${timestamp}`);
       }
 
       console.log('✅ User profile updated');
@@ -285,7 +282,7 @@ describe('E2E: Complete User Journey', () => {
       const response = await request(app)
         .post('/api/v1/login')
         .send({
-          email: 'e2e-test@example.com',
+          email: testEmail,
           password: 'newpassword123'
         })
         .expect(200);

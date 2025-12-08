@@ -32,11 +32,11 @@ class ProductService {
     const repo = this._getRepository();
     try {
       const product = await repo.findById(id);
-      
+
       if (!product) {
         throw new Error('Product not found');
       }
-      
+
       return product;
     } catch (error) {
       // Re-throw CastError for invalid ObjectId
@@ -49,8 +49,26 @@ class ProductService {
 
   /**
    * Create new product
+   * ✅ BUSINESS RULE: Category must exist before creating product
    */
   async createProduct(productData, userId) {
+    // ✅ VALIDATION: Check if category is provided
+    if (!productData.category) {
+      throw new Error('Category is required');
+    }
+
+    // ✅ VALIDATION: Check if category exists
+    const categoryService = require('./CategoryService');
+    try {
+      const categoryExists = await categoryService.getCategoryByName(productData.category);
+      if (!categoryExists) {
+        throw new Error(`Category "${productData.category}" does not exist. Please create the category first.`);
+      }
+    } catch (error) {
+      // If category not found, throw specific error
+      throw new Error(`Category "${productData.category}" does not exist. Please create the category first.`);
+    }
+
     const repo = this._getRepository();
     productData.user = userId;
     return await repo.create(productData);
@@ -60,13 +78,26 @@ class ProductService {
    * Update product
    */
   async updateProduct(id, updateData) {
+    // ✅ VALIDATION: If category is being updated, check if it exists
+    if (updateData.category) {
+      const categoryService = require('./CategoryService');
+      try {
+        const categoryExists = await categoryService.getCategoryByName(updateData.category);
+        if (!categoryExists) {
+          throw new Error(`Category "${updateData.category}" does not exist. Please create the category first.`);
+        }
+      } catch (error) {
+        throw new Error(`Category "${updateData.category}" does not exist. Please create the category first.`);
+      }
+    }
+
     const repo = this._getRepository();
     const product = await repo.update(id, updateData);
-    
+
     if (!product) {
       throw new Error('Product not found');
     }
-    
+
     return product;
   }
 
@@ -76,11 +107,11 @@ class ProductService {
   async deleteProduct(id) {
     const repo = this._getRepository();
     const result = await repo.delete(id);
-    
+
     if (!result) {
       throw new Error('Product not found');
     }
-    
+
     return result;
   }
 
@@ -138,6 +169,27 @@ class ProductService {
   async getProductsByIds(productIds) {
     const repo = this._getRepository();
     return await repo.getProductsByIds(productIds);
+  }
+
+  /**
+   * ✅ NEW: Get products with cursor-based pagination
+   * More efficient for large datasets
+   */
+  async getProductsWithCursor(filters, limit, cursor) {
+    const repo = this._getRepository();
+
+    // Check if repository supports cursor pagination
+    if (typeof repo.findAllWithCursor === 'function') {
+      return await repo.findAllWithCursor(filters, limit, cursor);
+    }
+
+    // Fallback to regular pagination
+    const result = await repo.findAll(filters);
+    return {
+      products: result.products,
+      nextCursor: null,
+      hasMore: false
+    };
   }
 }
 
