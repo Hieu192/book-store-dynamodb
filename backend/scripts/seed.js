@@ -1,18 +1,22 @@
 /**
- * Seed Script - REAL BOOK DATA FOR CHATBOT TRAINING
+ * Seed Script - DYNAMODB VERSION
  * 100% Real Data: 10 Categories x 10 Books/each = 100 Books
- * No random generation for book titles/descriptions.
+ * Target: DynamoDB (via Services)
  */
 
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+// Load Config
+dotenv.config({ path: 'config/config.env' });
+
+// FORCE DYNAMODB MODE
+process.env.DB_TYPE = 'dynamodb';
+// Disable Image Upload validations if necessary or mock them
+process.env.NODE_ENV = 'development';
+
 const categoryService = require('../services/CategoryService');
 const productService = require('../services/ProductService');
 const orderService = require('../services/OrderService');
 const userService = require('../services/UserService');
-
-// Load environment variables
-dotenv.config({ path: 'config/config.env' });
 
 // 1. DANH MỤC
 const CATEGORIES = [
@@ -170,29 +174,65 @@ const USER_CREDENTIALS = [];
 const ADMIN_CREDENTIALS = [];
 
 async function seedData() {
-    console.log('📚 BẮT ĐẦU NẠP DỮ LIỆU SÁCH MẪU (THẬT 100%)...\n');
+    console.log('📚 BẮT ĐẦU NẠP DỮ LIỆU SÁCH MẪU (DYNAMODB VERSION)...\n');
 
     try {
-        const User = mongoose.connection.model('User');
 
         // -----------------------------------------------------
         // 1. ADMIN
         console.log('👑 Kiểm tra Admin...');
         const adminEmail = 'admin@bookstore.com';
-        let admin = await User.findOne({ email: adminEmail });
-        if (!admin) {
-            try {
-                admin = await userService.createUser({
-                    name: 'Chủ Tiệm Sách',
-                    email: adminEmail,
-                    password: 'Admin@123456',
-                    role: 'admin'
-                });
-                console.log('✅ Đã tạo mới Admin');
-            } catch (e) { admin = await User.findOne({ email: adminEmail }); }
-        } else {
-            console.log('ℹ️  Dùng Admin cũ.');
+        let admin;
+
+        try {
+            // Thử tìm user (Nếu là DynamoDB thì service có thể throw error nếu ko tìm thấy hoặc return null)
+            // Lưu ý: UserService dùng User Model, có thể switch repo.
+            // Ta sẽ thử tạo, nếu lỗi duplicate thì bỏ qua.
+
+            // Tuy nhiên, để an toàn và tránh duplicate ID trong DynamoDB (nếu dùng UUID),
+            // tốt nhất là nên query bằng email (Scan hoặc GSI).
+            // DynamoUserRepository có findByEmail ko?
+            // Check service: userService.getUserByEmail(email) (cần implement nếu chưa có, hoặc dùng logic create catch error)
+
+            // Cách nhanh nhất cho Seed script: Cứ gọi Create, nếu lỗi Duplicate thì bỏ qua, sau đó Login để lấy ID
+            // Nhưng ở đây ta đang chạy script backend, không login qua API.
+
+            // Em sẽ giả định logic: Create -> Catch Error -> Login/Find
+
+            admin = await userService.createUser({
+                name: 'Chủ Tiệm Sách',
+                email: adminEmail,
+                password: 'Admin@123456',
+                role: 'admin'
+            });
+            console.log('✅ Đã tạo mới Admin');
+        } catch (e) {
+            // Nếu lỗi duplicate
+            console.log('ℹ️  Admin đã tồn tại (hoặc lỗi khác), đang lấy thông tin...');
+            // Cần lấy ID của admin. 
+            // Trong DynamoDB, ta có thể dùng GSI email để tìm
+            // Hoặc đơn giản: scan
+            const repo = userService._getRepository(); // Hack acces to repo
+            if (repo.findByEmail) {
+                admin = await repo.findByEmail(adminEmail);
+            } else {
+                // Fallback: Scan (Slow but ok for seed)
+                // DynamoDB scan
+                // Check if repo has findOne logic
+                if (repo.findAll) {
+                    const allUsers = await repo.findAll();
+                    admin = allUsers.find(u => u.email === adminEmail);
+                }
+            }
         }
+
+        if (!admin) {
+            console.log('⚠️ Không lấy được Admin ID. Dừng script.');
+            // Nếu vẫn không có admin, force create với ID cố định? Không nên.
+            // Tạm thời dừng nếu không có admin
+            process.exit(1);
+        }
+
         ADMIN_CREDENTIALS.push({ email: adminEmail, password: 'Admin@123456' });
 
         // -----------------------------------------------------
@@ -201,19 +241,27 @@ async function seedData() {
         const users = [];
         for (let i = 1; i <= 5; i++) {
             const email = `user${i}@example.com`;
-            let user = await User.findOne({ email });
-            if (!user) {
-                try {
-                    user = await userService.createUser({
-                        name: `Bạn Đọc ${i}`,
-                        email: email,
-                        password: `User${i}@123`,
-                        role: 'user'
-                    });
-                    console.log(`✅ Đã tạo: ${email}`);
-                } catch (e) { user = await User.findOne({ email }); }
+            let user;
+            try {
+                user = await userService.createUser({
+                    name: `Bạn Đọc ${i}`,
+                    email: email,
+                    password: `User${i}@123`,
+                    role: 'user'
+                });
+                console.log(`✅ Đã tạo: ${email}`);
+            } catch (e) {
+                // Find existing
+                const repo = userService._getRepository();
+                if (repo.findByEmail) {
+                    user = await repo.findByEmail(email);
+                } else if (repo.findAll) {
+                    const all = await repo.findAll();
+                    user = all.find(u => u.email === email);
+                }
             }
-            users.push(user);
+
+            if (user) users.push(user);
             USER_CREDENTIALS.push({ email: email, password: `User${i}@123` });
         }
 
@@ -223,14 +271,10 @@ async function seedData() {
         const products = [];
         let bookCount = 0;
 
-        // Duyệt qua từng Category trong BOOKS_DATA
         for (const [catName, booksList] of Object.entries(BOOKS_DATA)) {
 
-            // Tạo Category trong DB
             const catDescription = CATEGORIES.find(c => c.name === catName)?.description || 'Sách hay tuyển chọn';
 
-            // (Lưu ý: Logic tạo category này không check duplicate name, sẽ tạo mới mỗi lần chạy seed.
-            // Nếu muốn không trùng, cần xóa bảng Category trước hoặc thêm check.)
             const category = await categoryService.createCategory({
                 name: catName,
                 description: catDescription,
@@ -238,21 +282,20 @@ async function seedData() {
             });
             console.log(`\n📁 Danh mục: ${catName}`);
 
-            // Tạo 10 sách cho Category này
             for (const book of booksList) {
-                const price = Math.floor(Math.random() * 300000) + 60000; // Giá 60k - 360k
+                const price = Math.floor(Math.random() * 300000) + 60000;
 
                 const product = await productService.createProduct({
                     name: book.name,
                     price: price,
-                    description: book.desc + '\n\nSách bản quyền, in ấn chất lượng cao. Giấy định lượng tốt, chống lóa. Phù hợp cho mọi đối tượng độc giả.', // Thêm chút mô tả kỹ thuật
+                    description: book.desc + '\n\nSách bản quyền, in ấn chất lượng cao. Giấy định lượng tốt, chống lóa. Phù hợp cho mọi đối tượng độc giả.',
                     category: catName,
                     seller: 'Nhà Sách Trí Tuệ',
                     stock: Math.floor(Math.random() * 50) + 10,
                     ratings: 0,
                     numOfReviews: 0,
                     images: [{ public_id: `book_${Date.now()}_${Math.random()}`, url: 'https://via.placeholder.com/400x600' }]
-                }, admin.id || admin._id);
+                }, admin.id || admin._id || admin.userId); // Support various ID formats
 
                 products.push(product);
                 bookCount++;
@@ -266,9 +309,12 @@ async function seedData() {
         let orderCount = 0;
         for (let u = 0; u < users.length; u++) { // 5 users
             const user = users[u];
-            for (let i = 0; i < 20; i++) { // 20 orders per user
+            const userId = user.id || user._id || user.userId;
+
+            for (let i = 0; i < 20; i++) {
                 const prod = products[Math.floor(Math.random() * products.length)];
                 const qty = Math.floor(Math.random() * 2) + 1;
+                const prodId = prod.id || prod._id || prod.productId;
 
                 await orderService.createOrder({
                     shippingInfo: {
@@ -281,9 +327,9 @@ async function seedData() {
                     orderItems: [{
                         name: prod.name,
                         quantity: qty,
-                        image: prod.images[0].url,
+                        image: prod.images && prod.images[0] ? prod.images[0].url : 'https://via.placeholder.com/150',
                         price: prod.price,
-                        product: prod.id || prod._id
+                        product: prodId
                     }],
                     paymentInfo: { id: `pay_${Date.now()}_${orderCount}`, status: 'succeeded' },
                     itemsPrice: prod.price * qty,
@@ -291,7 +337,7 @@ async function seedData() {
                     shippingPrice: 15000,
                     totalPrice: (prod.price * qty) + 15000,
                     orderStatus: 'Delivered'
-                }, user.id || user._id);
+                }, userId);
                 orderCount++;
             }
         }
@@ -304,16 +350,18 @@ async function seedData() {
         for (let i = 0; i < 200; i++) {
             const user = users[Math.floor(Math.random() * users.length)];
             const prod = products[Math.floor(Math.random() * products.length)];
+            const userId = user.id || user._id || user.userId;
+            const prodId = prod.id || prod._id || prod.productId;
 
             try {
-                await productService.createReview(prod.id || prod._id, {
-                    user: user.id || user._id,
+                await productService.createReview(prodId, {
+                    user: userId,
                     name: user.name,
                     rating: Math.floor(Math.random() * 2) + 4, // 4-5 sao
                     comment: REVIEW_COMMENTS[Math.floor(Math.random() * REVIEW_COMMENTS.length)]
                 });
                 reviewCount++;
-            } catch (e) { } // Bỏ qua nếu user đã review sách này rồi
+            } catch (e) { }
         }
         console.log(`✅ Đã thêm ${reviewCount} đánh giá.`);
 
