@@ -65,14 +65,14 @@ export const authReducer = (state = { user: {} }, action) => {
       return {
         loading: false,
         isAuthenticated: false,
-        user: null,
+        user: {},
       };
 
     case LOAD_USER_FAIL:
       return {
         loading: false,
         isAuthenticated: false,
-        user: null,
+        user: {},
         error: action.payload,
       };
 
@@ -88,7 +88,7 @@ export const authReducer = (state = { user: {} }, action) => {
         ...state,
         loading: false,
         isAuthenticated: false,
-        user: null,
+        user: {},
         error: action.payload,
       };
 
