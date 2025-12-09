@@ -1,5 +1,5 @@
-const { putItem } = require('../shared/dynamodb');
-const { getCurrentTimestamp, getTTL, errorResponse, successResponse } = require('../shared/utils');
+const { putItem } = require('dynamodb');
+const { getCurrentTimestamp, getTTL, errorResponse, successResponse } = require('utils');
 
 /**
  * WebSocket $connect Handler

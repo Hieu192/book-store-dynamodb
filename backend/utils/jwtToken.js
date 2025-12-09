@@ -10,8 +10,11 @@ const sendToken = (user, statusCode, res) => {
     } else {
         // Generate token manually for DynamoDB users
         token = jwt.sign(
-            { id: user._id || user.id }, 
-            process.env.JWT_SECRET, 
+            {
+                id: user._id || user.id,
+                email: user.email
+            },
+            process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_TIME }
         );
     }

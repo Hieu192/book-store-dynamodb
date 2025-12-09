@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+const { ApiGatewayManagementApiClient, PostToConnectionCommand } = require('@aws-sdk/client-apigatewaymanagementapi');
 
 /**
  * Utility Helper Functions
@@ -12,20 +12,22 @@ const AWS = require('aws-sdk');
  * @param {string} endpoint - API Gateway endpoint
  */
 async function sendToConnection(connectionId, data, endpoint) {
-    const apiGateway = new AWS.ApiGatewayManagementApi({
+    const apiGateway = new ApiGatewayManagementApiClient({
         endpoint: endpoint || process.env.APIGW_ENDPOINT
     });
 
     try {
-        await apiGateway.postToConnection({
+        const command = new PostToConnectionCommand({
             ConnectionId: connectionId,
             Data: JSON.stringify(data)
-        }).promise();
+        });
+
+        await apiGateway.send(command);
 
         console.log(`Message sent to connection ${connectionId}`);
         return true;
     } catch (error) {
-        if (error.statusCode === 410) {
+        if (error.statusCode === 410 || error.name === 'GoneException') {
             console.log(`Connection ${connectionId} is gone (stale)`);
             // Connection is stale, should be cleaned up
             return false;

@@ -10,17 +10,19 @@ import {
     CHATBOT_SEND_MESSAGE_FAIL,
     CHATBOT_RECEIVE_MESSAGE,
     CHATBOT_TYPING,
-    CHATBOT_TYPING_STOP,
     CHATBOT_TOGGLE_WIDGET,
     CHATBOT_CLEAR_MESSAGES,
     CHATBOT_ERROR
 } from '../constants/chatbotConstants';
+import axios from 'axios';
+import API_CONFIG from '../config/config';
 
 // WebSocket instance
 let ws = null;
 
 /**
  * Connect to chatbot WebSocket
+ * Gets fresh token from backend API
  */
 export const connectChatbot = () => async (dispatch, getState) => {
     try {
@@ -46,19 +48,20 @@ export const connectChatbot = () => async (dispatch, getState) => {
             console.log('✅ Chatbot WebSocket connected');
             dispatch({ type: CHATBOT_CONNECT_SUCCESS });
 
-            // Send authentication message
+            // Get token from localStorage (stored during login)
             const token = localStorage.getItem('token');
 
             if (token) {
-                const parsedToken = JSON.parse(token);
+                console.log('🔑 Sending authentication with token');
                 ws.send(JSON.stringify({
                     type: 'authenticate',
-                    token: parsedToken
+                    token: token
                 }));
             } else {
+                console.warn('⚠️ No token found in localStorage');
                 dispatch({
                     type: CHATBOT_AUTH_FAIL,
-                    payload: 'No authentication token found'
+                    payload: 'Please log in to use chatbot'
                 });
             }
         };
@@ -103,6 +106,10 @@ export const connectChatbot = () => async (dispatch, getState) => {
                         type: CHATBOT_ERROR,
                         payload: data.message
                     });
+                    break;
+
+                case 'pong':
+                    console.log('🏓 Pong received');
                     break;
 
                 default:

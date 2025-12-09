@@ -1,6 +1,19 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET;
+// Get JWT_SECRET from environment
+let JWT_SECRET = process.env.JWT_SECRET;
+
+// Handle case where secret is stored as JSON object in Secrets Manager
+// e.g., {"bookstore/dev/jwt-secret":"ACTUAL_SECRET"}
+if (JWT_SECRET && JWT_SECRET.startsWith('{')) {
+    try {
+        const parsed = JSON.parse(JWT_SECRET);
+        // Extract the actual secret value (first value in object)
+        JWT_SECRET = Object.values(parsed)[0];
+    } catch (e) {
+        // If parse fails, use as-is
+    }
+}
 
 if (!JWT_SECRET) {
     throw new Error('JWT_SECRET environment variable is required');

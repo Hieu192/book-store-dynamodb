@@ -1,18 +1,21 @@
-const AWS = require('aws-sdk');
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand, DeleteCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 
 /**
  * DynamoDB Client Configuration
- * Shared across all Lambda functions
+ * AWS SDK v3 for Node.js 20.x
+ * Modular and built-in to Lambda runtime
  */
 
-const dynamodb = new AWS.DynamoDB.DocumentClient({
-    region: process.env.AWS_REGION || 'ap-southeast-1',
-    convertEmptyValues: true,
-    removeUndefinedValues: true
+const client = new DynamoDBClient({
+    region: process.env.AWS_REGION || 'ap-southeast-1'
 });
 
-const dynamodbClient = new AWS.DynamoDB({
-    region: process.env.AWS_REGION || 'ap-southeast-1'
+const dynamodb = DynamoDBDocumentClient.from(client, {
+    marshallOptions: {
+        convertEmptyValues: true,
+        removeUndefinedValues: true
+    }
 });
 
 const TABLE_NAME = process.env.TABLE_NAME || 'BookStore';
@@ -21,21 +24,22 @@ const TABLE_NAME = process.env.TABLE_NAME || 'BookStore';
  * Helper function to put item
  */
 async function putItem(item) {
-    return await dynamodb.put({
+    const command = new PutCommand({
         TableName: TABLE_NAME,
         Item: item
-    }).promise();
+    });
+    return await dynamodb.send(command);
 }
 
 /**
  * Helper function to get item
  */
 async function getItem(key) {
-    const result = await dynamodb.get({
+    const command = new GetCommand({
         TableName: TABLE_NAME,
         Key: key
-    }).promise();
-
+    });
+    const result = await dynamodb.send(command);
     return result.Item;
 }
 
@@ -43,35 +47,38 @@ async function getItem(key) {
  * Helper function to update item
  */
 async function updateItem(params) {
-    return await dynamodb.update({
+    const command = new UpdateCommand({
         TableName: TABLE_NAME,
         ...params
-    }).promise();
+    });
+    return await dynamodb.send(command);
 }
 
 /**
  * Helper function to delete item
  */
 async function deleteItem(key) {
-    return await dynamodb.delete({
+    const command = new DeleteCommand({
         TableName: TABLE_NAME,
         Key: key
-    }).promise();
+    });
+    return await dynamodb.send(command);
 }
 
 /**
  * Helper function to query items
  */
 async function queryItems(params) {
-    return await dynamodb.query({
+    const command = new QueryCommand({
         TableName: TABLE_NAME,
         ...params
-    }).promise();
+    });
+    return await dynamodb.send(command);
 }
 
 module.exports = {
     dynamodb,
-    dynamodbClient,
+    client,
     TABLE_NAME,
     putItem,
     getItem,

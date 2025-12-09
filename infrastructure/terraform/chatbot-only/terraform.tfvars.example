@@ -1,0 +1,32 @@
+# Chatbot-Only Configuration
+# Copy this to terraform.tfvars and customize
+
+# AWS Region
+aws_region = "ap-southeast-1"
+
+# Project name (should match your existing resources)
+project_name = "bookstore"
+
+# Existing DynamoDB table name
+dynamodb_table_name = "BookStore"
+
+# Existing JWT secret name in Secrets Manager
+# Check with: aws secretsmanager list-secrets --region ap-southeast-1
+jwt_secret_name = "bookstore/dev/jwt-secret"  # Fixed: actual secret name
+
+# Bedrock Knowledge Base ID (leave empty initially)
+# You'll create this in AWS Console, then update this value
+knowledge_base_id = ""
+
+# ============================================================================
+# NOTES:
+# ============================================================================
+# 1. Make sure these resources exist BEFORE deploying:
+#    - DynamoDB table: BookStore
+#    - Secrets Manager secret: bookstore/jwt-secret
+#
+# 2. Verify with:
+#    aws dynamodb describe-table --table-name BookStore --region ap-southeast-1
+#    aws secretsmanager get-secret-value --secret-id bookstore/jwt-secret --region ap-southeast-1
+#
+# 3. Knowledge Base will be created manually after deployment

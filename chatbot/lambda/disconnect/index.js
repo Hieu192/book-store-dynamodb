@@ -1,5 +1,5 @@
-const { deleteItem } = require('../shared/dynamodb');
-const { errorResponse, successResponse } = require('../shared/utils');
+const { deleteItem } = require('dynamodb');
+const { errorResponse, successResponse } = require('utils');
 
 /**
  * WebSocket $disconnect Handler

@@ -1,6 +1,6 @@
-const { getItem, putItem, updateItem, queryItems } = require('../shared/dynamodb');
-const { verifyToken } = require('../shared/auth');
-const { queryKnowledgeBase, generateResponse } = require('../shared/bedrock');
+const { getItem, putItem, updateItem, queryItems } = require('dynamodb');
+const { verifyToken } = require('auth');
+const { queryKnowledgeBase, generateResponse } = require('bedrock');
 const {
     sendToConnection,
     generateUUID,
@@ -10,7 +10,7 @@ const {
     successResponse,
     sanitizeInput,
     parseJSON
-} = require('../shared/utils');
+} = require('utils');
 
 /**
  * WebSocket $default Handler
@@ -104,23 +104,34 @@ async function handleAuthentication(connectionId, body, endpoint) {
     const userId = authResult.userId;
     const email = authResult.email;
 
+    // Build update expression dynamically
+    const updateParts = ['#status = :auth', 'userId = :uid', 'authenticatedAt = :authAt', '#ttl = :ttl'];
+    const expressionAttributeNames = {
+        '#status': 'status',
+        '#ttl': 'ttl'
+    };
+    const expressionAttributeValues = {
+        ':auth': 'AUTHENTICATED',
+        ':uid': userId,
+        ':authAt': getCurrentTimestamp(),
+        ':ttl': getTTL(86400) // 24 hours
+    };
+
+    // Add email only if present
+    if (email) {
+        updateParts.push('email = :email');
+        expressionAttributeValues[':email'] = email;
+    }
+
     // Update connection to AUTHENTICATED
     await updateItem({
         Key: {
             PK: `CONNECTION#${connectionId}`,
             SK: 'METADATA'
         },
-        UpdateExpression: 'SET #status = :auth, userId = :uid, email = :email, authenticatedAt = :authAt, ttl = :ttl',
-        ExpressionAttributeNames: {
-            '#status': 'status'
-        },
-        ExpressionAttributeValues: {
-            ':auth': 'AUTHENTICATED',
-            ':uid': userId,
-            ':email': email,
-            ':authAt': getCurrentTimestamp(),
-            ':ttl': getTTL(86400) // 24 hours
-        }
+        UpdateExpression: `SET ${updateParts.join(', ')}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues
     });
 
     console.log(`✅ Connection ${connectionId} authenticated for user ${userId}`);

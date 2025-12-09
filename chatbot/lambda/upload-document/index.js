@@ -1,7 +1,7 @@
 const AWS = require('aws-sdk');
-const { verifyToken } = require('../shared/auth');
-const { putItem } = require('../shared/dynamodb');
-const { generateUUID, getCurrentTimestamp, errorResponse, successResponse } = require('../shared/utils');
+const { verifyToken } = require('auth');
+const { putItem } = require('dynamodb');
+const { generateUUID, getCurrentTimestamp, errorResponse, successResponse } = require('utils');
 
 /**
  * Upload Document to Knowledge Base Handler

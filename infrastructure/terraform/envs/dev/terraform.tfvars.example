@@ -1,0 +1,37 @@
+# Dev Environment - Terraform Variables
+# Copy this file to terraform.tfvars and customize
+
+# Basic Configuration
+aws_region   = "ap-southeast-1"
+project_name = "bookstore"
+
+# Network
+vpc_cidr = "10.0.0.0/16"
+
+# Domain (optional - leave empty to use CloudFront default domain)
+# domain_name = "dev.yourdomain.com"
+domain_name = ""
+
+# DynamoDB
+dynamodb_table_name = "BookStore"
+
+# Chatbot (optional - set after creating Bedrock Knowledge Base)
+knowledge_base_id = ""
+
+# CloudFront (auto-populated by output, used for CORS)
+cloudfront_url = ""
+
+# ============================================================================
+# NOTES:
+# ============================================================================
+# 1. Secrets are NOT stored in this file!
+#    Set secrets manually via:
+#    - AWS Console → Secrets Manager
+#    - Or: aws secretsmanager put-secret-value --secret-id bookstore/dev/jwt-secret --secret-string "YOUR_SECRET"
+#
+# 2. For sensitive values, use environment variables:
+#    export TF_VAR_knowledge_base_id="kb-xxx"
+#
+# 3. Domain setup:
+#    - Leave domain_name empty to use CloudFront's default domain (saves cost)
+#    - Set domain_name to enable custom domain + SSL certificates
