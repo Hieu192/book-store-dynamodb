@@ -32,6 +32,8 @@ import {
 	categoryReducer,
 	dltCategoryReducer,
 } from "./reducers/categoryReducer";
+import { chatbotReducer } from "./reducers/chatbotReducers";
+
 const reducer = combineReducers({
 	products: productsReducer,
 	productDetails: productDetailsReducer,
@@ -54,6 +56,7 @@ const reducer = combineReducers({
 	newCategory: newCategoryReducer,
 	category: categoryReducer,
 	dltCategory: dltCategoryReducer,
+	chatbot: chatbotReducer, // Add chatbot reducer
 });
 let initialState = {
 	cart: {

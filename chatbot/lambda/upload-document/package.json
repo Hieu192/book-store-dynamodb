@@ -1,0 +1,16 @@
+{
+    "name": "chatbot-upload-document",
+    "version": "1.0.0",
+    "description": "Upload documents to Knowledge Base",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "aws-sdk": "^2.1692.0",
+        "jsonwebtoken": "^8.5.1"
+    },
+    "devDependencies": {},
+    "author": "",
+    "license": "ISC"
+}

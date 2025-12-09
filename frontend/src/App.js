@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Route,Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
@@ -43,7 +43,7 @@ import CategorysList from "./components/admin/CatagoryList";
 import ProtectedUserRoute from "./components/route/ProtectedUserRoute";
 import ProtectedAdminRoute from "./components/route/ProtectedAdminRoute";
 import { loadUser } from "./actions/userActions";
-import {store} from "./store";
+import { store } from "./store";
 import axios from "axios";
 
 // Payment
@@ -51,105 +51,112 @@ import UserPage from "./components/user/UserPage";
 import Contact from "./components/Contact";
 import SearchPage from "./components/SearchPage";
 
+// Chatbot
+import ChatWidget from "./components/chatbot/ChatWidget";
+
 function App() {
   useEffect(() => {
     store.dispatch(loadUser());
   }, []);
 
   return (
-   
-          
 
-      <div className="App">
-        <ScrollToTop />
-        <Header />
-      
-          <Routes>
 
-          <Route path="/" element={<Home/>}  />
-          <Route path="/contact" element={<Contact/>} />
-          <Route path="/search" element={<SearchPage/>} />
-          <Route path="/search/:keyword" element={<SearchPage/>} />
-          <Route path="/product/:id" element={<ProductDetails/>} />
-          <Route path="/cart" element={<Cart/>} />
-          <Route path="/login" element={<UserPage/>} />
-          <Route path="/password/forgot" element={<ForgotPassword/>} />
-          <Route path="/password/reset/:token" element={<NewPassword/>} />
 
-             <Route element={<ProtectedUserRoute/>}>
-          <Route path="/shipping" element={<Shipping/>} />
-          <Route path="/confirm" element={<ConfirmOrder/>} />
-          <Route path="/success" element={<OrderSuccess/>} />
-          <Route path="/payment" element={<Payment/>} />
-          <Route path="/me" element={<Profile/>} />
-          <Route path="/me/update" element={<UpdateProfile/>} />
-          <Route path="/password/update"element={<UpdatePassword/>}/>
-          <Route path="/orders/me" element={<ListOrders/>} />
-          <Route path="/order/:id" element={<OrderDetails/>} />
-          </Route>
-          <Route element={<ProtectedAdminRoute/>}>
-        <Route
-          path="/dashboard"
-          element={<Dashboard />}
-         
+    <div className="App">
+      <ScrollToTop />
+      <Header />
+
+      <Routes>
+
+        <Route path="/" element={<Home />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="/search/:keyword" element={<SearchPage />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/login" element={<UserPage />} />
+        <Route path="/password/forgot" element={<ForgotPassword />} />
+        <Route path="/password/reset/:token" element={<NewPassword />} />
+
+        <Route element={<ProtectedUserRoute />}>
+          <Route path="/shipping" element={<Shipping />} />
+          <Route path="/confirm" element={<ConfirmOrder />} />
+          <Route path="/success" element={<OrderSuccess />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/me" element={<Profile />} />
+          <Route path="/me/update" element={<UpdateProfile />} />
+          <Route path="/password/update" element={<UpdatePassword />} />
+          <Route path="/orders/me" element={<ListOrders />} />
+          <Route path="/order/:id" element={<OrderDetails />} />
+        </Route>
+        <Route element={<ProtectedAdminRoute />}>
+          <Route
+            path="/dashboard"
+            element={<Dashboard />}
+
           />
-        <Route
-          path="/admin/products"
-          element={<ProductsList />}
-         
+          <Route
+            path="/admin/products"
+            element={<ProductsList />}
+
           />
-        <Route
-          path="/admin/product"
-          element={<NewProduct />}
-         
+          <Route
+            path="/admin/product"
+            element={<NewProduct />}
+
           />
-        <Route
-          path="/admin/category"
-          element={<CategorysList />}
-         
+          <Route
+            path="/admin/category"
+            element={<CategorysList />}
+
           />
-        <Route
-          path="/admin/category/new"
-          element={<NewCategory />}
-         
+          <Route
+            path="/admin/category/new"
+            element={<NewCategory />}
+
           />
-        <Route
-          path="/admin/product/:id"
-          element={<UpdateProduct />}
-         
+          <Route
+            path="/admin/product/:id"
+            element={<UpdateProduct />}
+
           />
-        <Route
-          path="/admin/orders"
-          element={<OrdersList />}
-         
+          <Route
+            path="/admin/orders"
+            element={<OrdersList />}
+
           />
-        <Route
-          path="/admin/order/:id"
-          element={<ProcessOrder />}
-         
+          <Route
+            path="/admin/order/:id"
+            element={<ProcessOrder />}
+
           />
-        <Route
-          path="/admin/users"
-          element={<UsersList />}
-         
+          <Route
+            path="/admin/users"
+            element={<UsersList />}
+
           />
-        <Route
-          path="/admin/user/:id"
-          element={<UpdateUser />}
-         
+          <Route
+            path="/admin/user/:id"
+            element={<UpdateUser />}
+
           />
-        <Route
-          path="/admin/reviews"
-          element={<ProductReviews />}
-         
+          <Route
+            path="/admin/reviews"
+            element={<ProductReviews />}
+
           />
-          </Route>
-          </Routes>
-        <Footer />
-        {/* {!loading && (!isAuthenticated || user.role !== "admin") && } */}
-      </div>
-      
-    
+        </Route>
+      </Routes>
+      <Footer />
+
+      {/* Chatbot Widget */}
+      <ChatWidget />
+
+      {/* {!loading && (!isAuthenticated || user.role !== "admin") && } */}
+    </div>
+
+
   );
 }
 

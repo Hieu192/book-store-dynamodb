@@ -14,7 +14,7 @@ terraform {
     }
   }
 
-  # Store state in S3 (recommended for production)
+  # Store state in S3
   backend "s3" {
     bucket         = "bookstore-tf-state-hieu192"
     key            = "bookstore/terraform.tfstate"
@@ -147,7 +147,7 @@ resource "aws_route_table_association" "private" {
 
 # CloudFront Managed Prefix List
 data "aws_ec2_managed_prefix_list" "cloudfront" {
-  filter {.
+  filter {
     name   = "prefix-list-name"
     values = ["com.amazonaws.global.cloudfront.origin-facing"]
   }

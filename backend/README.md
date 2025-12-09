@@ -422,43 +422,6 @@ docker build -t bookstore-backend .
 docker run -p 4000:4000 --env-file config/config.env bookstore-backend
 ```
 
-## 📞 Support
-
-- **Documentation**: Xem các file .md trong thư mục backend
-- **Issues**: Tạo issue trên GitHub
-- **Email**: support@bookstore.com
-
-## 📝 Changelog
-
-### v2.3.0 (Current)
-- ✅ Vietnamese search support (có dấu & không dấu)
-- ✅ Smart autocomplete with product suggestions
-- ✅ Real-time notifications via WebSocket
-- ✅ Auto-clear cart after successful order
-- ✅ Optimized search performance with normalized names
-
-### v2.2.0
-- ✅ Multi-language support (i18n) - Vietnamese & English
-- ✅ Language switcher in header
-- ✅ Translated Login & Register forms
-- ✅ Full UI translation (products, cart, orders, filters)
-
-### v2.1.0
-- ✅ Google OAuth 2.0 authentication
-- ✅ Fixed form validation for OAuth login
-
-### v2.0.0
-- ✅ Migrated từ MongoDB sang DynamoDB
-- ✅ Integrated CloudFront CDN
-- ✅ Implemented Repository Pattern
-- ✅ Added Redis caching layer
-- ✅ Added comprehensive tests (85% coverage)
-- ✅ Performance improvement 75-85%
-
-### v1.0.0
-- Initial release với MongoDB
-- Basic CRUD operations
-- PayOS payment integration
 
 ## 🎯 Roadmap
 
@@ -467,7 +430,7 @@ docker run -p 4000:4000 --env-file config/config.env bookstore-backend
 - [x] Multi-language support (i18n)
 - [x] Real-time notifications (WebSocket)
 - [x] Vietnamese search optimization
-- [ ] Advanced analytics dashboard
+- [x] Advanced analytics dashboard
 - [ ] Mobile app (React Native)
 
 ---

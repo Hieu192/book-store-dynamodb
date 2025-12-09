@@ -180,8 +180,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 }
 
-# Data source for AWS account ID
-data "aws_caller_identity" "current" {}
+# Data source for AWS account ID is defined in chatbot.tf
 
 # Outputs
 output "s3_bucket_name" {
@@ -195,5 +194,4 @@ output "cloudfront_domain_name" {
 output "cloudfront_distribution_id" {
   value = aws_cloudfront_distribution.frontend.id
 }
-
 

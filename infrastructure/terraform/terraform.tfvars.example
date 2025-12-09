@@ -1,0 +1,20 @@
+# ============================================================================
+# TERRAFORM VARIABLES - EXAMPLE
+# ============================================================================
+# Copy this file to terraform.tfvars and update values
+
+# Project Configuration
+project_name = "bookstore"
+environment  = "production"
+aws_region   = "ap-southeast-1"
+
+# DynamoDB
+dynamodb_table_name = "BookStore"
+
+# Chatbot Configuration
+chatbot_enabled    = true
+jwt_secret_name    = "bookstore/jwt-secret"
+knowledge_base_id  = ""  # Update after creating Bedrock Knowledge Base
+
+# Example value after KB creation:
+# knowledge_base_id = "ABC123DEFG"
