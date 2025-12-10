@@ -44,7 +44,7 @@ output "deployment_summary" {
   1️⃣  Save WebSocket URL:
      ${module.chatbot.websocket_url}
   
-  2️⃣  Upload documents to Knowledge Base bucket:
+  2️⃣  Upload documents to Knowledge Base bucket
      aws s3 cp your-doc.txt s3://${module.chatbot.kb_bucket_name}/docs/
   
   3️⃣  Create Bedrock Knowledge Base:
@@ -59,16 +59,6 @@ output "deployment_summary" {
      npm install -g wscat
      wscat -c "${module.chatbot.websocket_url}"
      Send: {"type":"message","message":"Hello","userId":"test"}
-  
-  📊 Resources Created:
-  - 4 Lambda functions
-  - 1 Lambda Layer
-  - 1 API Gateway WebSocket
-  - 1 S3 bucket for KB
-  - CloudWatch Log Groups
-  - IAM roles & policies
-  
-  💰 Estimated Cost: ~$3-7/month
-  
+
   EOT
 }

@@ -1,0 +1,13 @@
+{
+    "name": "chatbot-scripts",
+    "version": "1.0.0",
+    "description": "Scripts for chatbot Knowledge Base management",
+    "scripts": {
+        "export": "node export-books-to-kb.js"
+    },
+    "dependencies": {
+        "@aws-sdk/client-dynamodb": "^3.0.0",
+        "@aws-sdk/lib-dynamodb": "^3.0.0",
+        "@aws-sdk/client-s3": "^3.0.0"
+    }
+}

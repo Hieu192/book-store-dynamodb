@@ -19,11 +19,11 @@ variable "dynamodb_table_name" {
 variable "jwt_secret_name" {
   description = "Existing JWT secret name in Secrets Manager"
   type        = string
-  default     = "bookstore/dev/jwt-secret"  # Fixed: actual secret name
+  default     = "bookstore/dev/jwt-secret"
 }
 
 variable "knowledge_base_id" {
-  description = "Bedrock Knowledge Base ID (leave empty initially, update after creating KB)"
+  description = "Bedrock Knowledge Base ID"
   type        = string
   default     = ""
 }

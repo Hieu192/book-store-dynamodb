@@ -39,5 +39,5 @@ module "chatbot" {
   dynamodb_table_name  = var.dynamodb_table_name
   jwt_secret_name      = var.jwt_secret_name
   knowledge_base_id    = var.knowledge_base_id
-  lambda_source_dir    = "../../../chatbot/lambda"  # Fixed: correct path from chatbot-only
+  lambda_source_dir    = "../../../chatbot/lambda"
 }

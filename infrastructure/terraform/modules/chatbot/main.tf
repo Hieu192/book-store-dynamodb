@@ -108,14 +108,17 @@ resource "aws_iam_role_policy" "chatbot_lambda" {
           "${data.aws_dynamodb_table.bookstore.arn}/index/*"
         ]
       },
-      # Bedrock access
+      # Bedrock access (multi-region: ap-southeast-1 + us-east-1)
       {
         Effect = "Allow"
         Action = [
           "bedrock:InvokeModel",
           "bedrock:InvokeModelWithResponseStream"
         ]
-        Resource = "arn:aws:bedrock:${data.aws_region.current.name}::foundation-model/*"
+        Resource = [
+          "arn:aws:bedrock:${data.aws_region.current.name}::foundation-model/*",
+          "arn:aws:bedrock:us-east-1::foundation-model/*"  # Add us-east-1 for full model access
+        ]
       },
       # Bedrock Agent Runtime (for Knowledge Base)
       {
@@ -291,7 +294,7 @@ resource "aws_lambda_function" "chatbot_send_message" {
   handler         = "index.handler"
   source_code_hash = data.archive_file.lambda_send_message.output_base64sha256
   runtime         = "nodejs20.x"
-  timeout         = 30
+  timeout         = 60    # Increased for Bedrock API calls
   memory_size     = 1024
 
   layers = [aws_lambda_layer_version.chatbot_shared.arn]
@@ -306,7 +309,9 @@ resource "aws_lambda_function" "chatbot_send_message" {
     }
   }
 
-  depends_on = [aws_cloudwatch_log_group.lambda_send_message]
+  depends_on = [
+    aws_cloudwatch_log_group.lambda_send_message
+  ]
 }
 
 # Lambda: Upload Document Handler (Admin only)
@@ -332,7 +337,9 @@ resource "aws_lambda_function" "chatbot_upload_document" {
     }
   }
 
-  depends_on = [aws_cloudwatch_log_group.lambda_upload_document]
+  depends_on = [
+    aws_cloudwatch_log_group.lambda_upload_document
+  ]
 }
 
 # ============================================================================
