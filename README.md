@@ -1,24 +1,20 @@
-# 🛍️ HỆ THỐNG QUẢN LÝ SÁCH TRỰC TUYẾN
+#  HỆ THỐNG QUẢN LÝ SÁCH TRỰC TUYẾN
 
-## 📋 TỔNG QUAN
+##  TỔNG QUAN
 
 Ứng dụng web full-stack cho hệ thống quản lý và bán sách trực tuyến với kiến trúc production-ready trên AWS.
 
-### 🏗️ Kiến Trúc Production
+###  Kiến Trúc Production
 - **Frontend**: React.js + Tailwind CSS → S3 + CloudFront (CDN global)
 - **Backend**: Node.js + Express.js → ECS Fargate (Auto-scaling 1-4 tasks), Lambda (resize image)
 - **WebSocket**: Real-time notifications → ALB (Sticky Sessions)
+- **AI Chatbot**: AWS Bedrock (Claude 3) + Lambda + API Gateway WebSocket + Knowledge Base (RAG)
 - **Database**: AWS DynamoDB (Single-Table Design, On-Demand)
 - **Cache**: AWS ElastiCache Redis (Sessions, API cache)
-- **Storage**: AWS S3 (Uploads, Static files)
+- **Storage**: AWS S3 (Uploads, Static files, Vector data source)
 - **Infrastructure**: Terraform (Infrastructure as Code)
 
 ![alt text](md/image.png)
-
-### 📚 Tài Liệu
-
-
----
 
 ## 🏗️ KIẾN TRÚC HỆ THỐNG
 
@@ -64,31 +60,6 @@
 - **Frontend (`/*`)**: CloudFront -> S3 Bucket (Static Files)
 - **Backend (`/api/*`)**: CloudFront -> ALB -> ECS Fargate (API)
 - **Lợi ích**: Chung domain (không CORS), bảo mật cao (Backend ẩn sau CDN).
-
----
-
-<!-- ## 🧠 QUYẾT ĐỊNH KIẾN TRÚC (INFRASTRUCTURE DECISIONS)
-
-### 1. Tại sao Backend dùng Docker (ECS Fargate)?
-- **Môi trường đồng nhất**: Đảm bảo code chạy trên server giống hệt trên máy local.
-- **Bảo mật**: Chạy với non-root user, hạn chế quyền truy cập hệ thống.
-- **Graceful Shutdown**: Xử lý tín hiệu tắt an toàn, không làm rớt request.
-- **Tối ưu**: Multi-stage build giảm kích thước image (<200MB).
-
-### 2. Tại sao Frontend KHÔNG dùng Docker?
-- **Chi phí**: Hosting file tĩnh trên S3 + CloudFront rẻ hơn nhiều so với chạy container 24/7 
-- **Hiệu năng**: CloudFront cache nội dung tại edge location, tốc độ tải trang cực nhanh.
-- **Scalability**: S3 không giới hạn băng thông và storage, không lo sập khi traffic tăng đột biến.
-
-### 3. Mô hình CloudFront Single Distribution
-Chúng tôi sử dụng **một** CloudFront distribution duy nhất cho cả Frontend và Backend:
-- `example.com/*` -> Trỏ về **S3 Bucket** (Frontend React App)
-- `example.com/api/*` -> Trỏ về **ALB** (Backend API)
-
-**Lợi ích:**
-- ✅ **Chung Domain**: Loại bỏ hoàn toàn lỗi CORS.
-- ✅ **SSL/TLS**: Quản lý chứng chỉ tập trung tại CloudFront.
-- ✅ **Bảo mật**: Backend ẩn sau CloudFront, không public trực tiếp ra internet. -->
 
 ---
 
@@ -179,6 +150,37 @@ frontend/
 - ✅ Icon chuông với badge số lượng
 - ✅ Dropdown hiển thị lịch sử thông báo
 
+### 7. AI Chatbot (Powered by AWS Bedrock)
+- ✅ **Tư vấn sản phẩm thông minh** (RAG - Retrieval Augmented Generation)
+  - Tìm kiếm sách qua Knowledge Base (Vector Search)
+  - Gợi ý sách dựa trên sở thích và ngữ cảnh hội thoại
+  - Trả lời câu hỏi về thông tin sách (tác giả, giá, tình trạng kho)
+  
+- ✅ **Tra cứu đơn hàng** (Function Calling/Tool Use)
+  - Xem lịch sử đơn hàng của người dùng
+  - Kiểm tra trạng thái đơn hàng cụ thể
+  - Tích hợp với Backend API (tái sử dụng `/api/v1/orders`)
+  
+- ✅ **Xác thực & Bảo mật**
+  - JWT Authentication qua WebSocket
+  - Phân quyền truy cập dữ liệu đơn hàng
+  - Không lộ thông tin người dùng khác
+  
+- ✅ **Hội thoại đa lượt** (Conversation Memory)
+  - Lưu lịch sử chat trong DynamoDB
+  - AI nhớ ngữ cảnh cuộc trò chuyện
+  - Trả lời tiếng Việt tự nhiên
+  
+- ✅ **Serverless Architecture**
+  - API Gateway WebSocket
+  - Lambda Functions (Connect, Disconnect, Send Message)
+  - Amazon Bedrock (Model: Claude 3 / Nova Lite)
+  - Knowledge Base (OpenSearch Serverless)
+  
+- ✅ **ETL Pipeline tự động**
+  - DynamoDB Stream → Lambda ETL → S3 → Bedrock Sync
+  - Tự động cập nhật kiến thức khi có sản phẩm mới
+
 ---
 
 ## 🚀 HIỆU SUẤT & TESTING
@@ -243,27 +245,6 @@ GSI2: GSI2PK + GSI2SK (Status, Price, Stock filtering)
 - List reviews by product
 - ... và nhiều patterns khác
 
-**Kết quả đạt được sau migration:**
-- ✅ Cải thiện 75-85% hiệu suất đọc
-- ✅ Auto-scaling tự động
-- ✅ Chi phí thực tế: ~$12/month (giảm 73% so với MongoDB)
-- ✅ Zero downtime migration
-- ✅ CloudFront CDN integration
-
----
-
-## 🔐 BẢO MẬT
-
-### Implemented Security Features
-- ✅ JWT Authentication
-- ✅ Password hashing (bcrypt)
-- ✅ Input validation
-- ✅ SQL Injection prevention
-- ✅ XSS protection
-- ✅ CORS configuration
-- ✅ Rate limiting
-- ✅ Helmet.js security headers
-
 ---
 
 ## 📊 API ENDPOINTS
@@ -303,6 +284,53 @@ POST   /api/v1/admin/category/new    # Tạo danh mục (Admin)
 DELETE /api/v1/admin/category/:id    # Xóa danh mục (Admin)
 ```
 
+### Chatbot API (WebSocket)
+```
+WebSocket: wss://<api-gateway-endpoint>/prod
+
+Message Types:
+1. authenticate    # Xác thực người dùng với JWT token
+   { "type": "authenticate", "token": "<jwt_token>" }
+
+2. chat_message    # Gửi tin nhắn chat
+   { "type": "chat_message", "message": "Tìm sách trinh thám", "conversationId": "<id>" }
+
+3. ping            # Keep-alive connection
+   { "type": "ping" }
+
+Response Types:
+- message_received  # Xác nhận đã nhận tin nhắn
+- bot_response      # Phản hồi từ AI
+- error            # Thông báo lỗi
+```
+
+---
+
+## 📁 CẤU TRÚC CHI TIẾT
+
+### Chatbot Structure
+```
+chatbot/
+├── lambda/
+│   ├── connect/              # WebSocket connection handler
+│   ├── disconnect/           # WebSocket disconnect handler
+│   ├── send-message/         # Main chat processing
+│   └── shared/               # Shared code (Layer)
+│       ├── auth.js           # JWT verification
+│       ├── bedrock.js        # AI interaction & Function Calling
+│       ├── dynamodb.js       # Database helpers
+│       ├── utils.js          # Utility functions
+│       ├── prompts/          # Modular system prompts
+│       │   ├── persona.js
+│       │   ├── productRecommendations.js
+│       │   ├── orderManagement.js
+│       │   └── securityRules.js
+│       └── tools/            # Function Calling tool definitions
+│           └── orderTools.js
+└── scripts/                  # Knowledge Base management scripts
+```
+
+
 ---
 
 ## 🛠️ SETUP & DEPLOYMENT
@@ -341,6 +369,12 @@ CLOUDFRONT_DOMAIN=your-domain.cloudfront.net
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRE=7d
 
+# Chatbot (Lambda Environment)
+KNOWLEDGE_BASE_ID=your-kb-id
+BACKEND_API_URL=https://your-alb-dns/api/v1
+TABLE_NAME=BookStore
+APIGW_ENDPOINT=https://api-id.execute-api.region.amazonaws.com/prod
+
 # Server
 PORT=4000
 NODE_ENV=production
@@ -370,7 +404,85 @@ Build React app, upload lên S3 và invalidate CloudFront cache:
 ./scripts/deploy-frontend.sh
 ```
 
+#### Bước 4: Deploy Chatbot (Serverless)
+Deploy Lambda functions và API Gateway WebSocket:
+```bash
+cd infrastructure/terraform/chatbot-only
+terraform init
+terraform apply
 
-**Last Updated**: November 22, 2025
-**Version**: 2.3.0
-**Status**:  Production (DynamoDB + CloudFront + Google OAuth + i18n + Vietnamese Search + WebSocket)
+# Build và upload Lambda Layer
+cd ../../../chatbot/lambda
+./build-layer.ps1
+
+# Deploy Lambda functions
+cd ../../infrastructure/terraform/chatbot-only
+terraform apply
+```
+
+#### Bước 5: Setup Knowledge Base
+Upload dữ liệu sản phẩm và đồng bộ với Bedrock:
+```bash
+cd chatbot/scripts
+node upload-documents.js
+# Sau đó vào AWS Console → Bedrock → Knowledge Base → Sync
+```
+
+---
+
+## 🔄 CI/CD Pipeline
+
+### GitHub Actions Workflow
+```yaml
+# Backend CI/CD
+- Trigger: Push to main branch
+- Steps:
+  1. Run tests (Jest)
+  2. Build Docker image
+  3. Push to Amazon ECR
+  4. Update ECS Service
+  5. Invalidate cache
+
+# Frontend CI/CD  
+- Trigger: Push to main branch (frontend changes)
+- Steps:
+  1. Build React app
+  2. Upload to S3
+  3. Invalidate CloudFront cache
+```
+
+---
+
+## 📊 Monitoring & Logging
+
+### CloudWatch Metrics
+- ECS Task CPU/Memory utilization
+- ALB Request count & latency
+- DynamoDB Read/Write capacity
+- Lambda invocation count & duration
+- API Gateway WebSocket connections
+
+### CloudWatch Logs
+- Backend application logs: `/aws/ecs/backend-production`
+- Lambda function logs: `/aws/lambda/chatbot-*`
+- VPC Flow logs: `/aws/vpc/flowlogs`
+
+---
+
+## 🎯 Roadmap & Future Enhancements
+
+### Chatbot Improvements
+- [ ] Multi-modal search (Image recognition)
+- [ ] Voice shopping (Text-to-Speech)
+- [ ] Sentiment analysis & human handover
+- [ ] Abandoned cart recovery
+- [ ] Personalized recommendations based on purchase history
+- [ ] Upsell & Cross-sell automation
+
+### Backend Improvements
+- [ ] GraphQL API
+- [ ] Advanced analytics dashboard
+- [ ] Recommendation engine (ML-based)
+- [ ] Loyalty program
+
+---
