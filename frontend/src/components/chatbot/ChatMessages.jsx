@@ -11,7 +11,8 @@ const ChatMessages = ({
     messagesEndRef,
     error,
     connected,
-    authenticated
+    authenticated,
+    loadingHistory
 }) => {
     const { t } = useTranslation();
     const dispatch = useDispatch();
@@ -76,6 +77,16 @@ const ChatMessages = ({
                     <CircularProgress size={40} />
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
                         {t('chatbot.authenticating') || 'Đang xác thực...'}
+                    </Typography>
+                </Box>
+            )}
+
+            {/* Loading History State */}
+            {loadingHistory && (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <CircularProgress size={40} />
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        {t('chatbot.loadingHistory') || 'Đang tải lịch sử trò chuyện...'}
                     </Typography>
                 </Box>
             )}

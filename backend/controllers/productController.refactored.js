@@ -13,6 +13,20 @@ exports.getProducts = catchAsyncErrors(async (req, res, next) => {
   // Parse query params for filters
   const filters = { ...req.query };
 
+  // Parse category[] array to single category (take first one for now)
+  // Frontend sends category[] but backend DynamoDB repository expects single category
+  if (req.query['category[]']) {
+    const categories = Array.isArray(req.query['category[]'])
+      ? req.query['category[]']
+      : [req.query['category[]']];
+
+    // For now, only support single category filtering (first selected category)
+    if (categories.length > 0) {
+      filters.category = categories[0];
+    }
+    delete filters['category[]'];
+  }
+
   // Parse price[gte], price[lte] to { price: { gte, lte } }
   if (req.query['price[gte]'] || req.query['price[lte]']) {
     filters.price = {};
@@ -32,7 +46,11 @@ exports.getProducts = catchAsyncErrors(async (req, res, next) => {
     delete filters['ratings[gte]'];
   }
 
+  console.log('📊 Product filters:', JSON.stringify(filters, null, 2));
+
   const result = await productService.getProducts(filters);
+
+  console.log(`📦 Found ${result.products.length} products (page ${result.page}/${result.pages})`);
 
   res.status(200).json({
     success: true,

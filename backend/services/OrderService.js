@@ -128,6 +128,15 @@ class OrderService {
     const allOrders = await repo.findAll();
     return allOrders.find(o => o.orderCode === orderCode) || null;
   }
+
+  // Aliases for chatbot use
+  async getOrderByCode(orderCode) {
+    return this.getOrderByOrderCode(orderCode);
+  }
+
+  async getUserOrders(userId) {
+    return this.getMyOrders(userId);
+  }
 }
 
 module.exports = new OrderService();

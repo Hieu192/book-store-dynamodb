@@ -47,6 +47,8 @@ const Home = () => {
     productsCount,
     resPerPage,
     filteredProductsCount,
+    totalPages,
+    currentPage: backendCurrentPage
   } = useSelector((state) => state.products);
 
   useEffect(() => {
@@ -81,9 +83,9 @@ const Home = () => {
         <Fragment>
           <MetaData title={"Shop sách online"} />
           {ishome && (
-            <Banner2/>
+            <Banner2 />
           )}
-          {ishome && <CategorySection setCatagory={setCatagory}/>}
+          {ishome && <CategorySection setCatagory={setCatagory} />}
 
           {ishome ? (
             <div class="col-lg-12 mt-5">
@@ -102,11 +104,11 @@ const Home = () => {
             </>
           )}
 
-        <Container>
-            <ProductList products={products} col={2.4}/>
+          <Container>
+            <ProductList products={products} col={2.4} />
           </Container>
 
-          {resPerPage <= count && (
+          {totalPages > 1 && (
             <div className="d-flex justify-content-center mt-5">
               <Pagination
                 activePage={currentPage}

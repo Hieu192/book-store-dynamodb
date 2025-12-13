@@ -12,6 +12,11 @@ import {
     CHATBOT_TYPING,
     CHATBOT_TOGGLE_WIDGET,
     CHATBOT_CLEAR_MESSAGES,
+    CHATBOT_LOAD_HISTORY_REQUEST,
+    CHATBOT_LOAD_HISTORY_SUCCESS,
+    CHATBOT_LOAD_HISTORY_FAIL,
+    CHATBOT_NEW_CONVERSATION,
+    CHATBOT_SET_CONVERSATION_ID,
     CHATBOT_ERROR
 } from '../constants/chatbotConstants';
 import axios from 'axios';
@@ -158,11 +163,17 @@ export const sendMessage = (message) => async (dispatch, getState) => {
             payload: message
         });
 
+        // Get conversationId from localStorage if not in state
+        let conversationId = chatbot.conversationId;
+        if (!conversationId) {
+            conversationId = localStorage.getItem('chatbot_conversationId');
+        }
+
         // Send message via WebSocket
         ws.send(JSON.stringify({
             type: 'chat_message',
             message: message.trim(),
-            conversationId: chatbot.conversationId
+            conversationId: conversationId
         }));
 
     } catch (error) {
@@ -196,4 +207,74 @@ export const toggleChatbot = () => (dispatch) => {
  */
 export const clearMessages = () => (dispatch) => {
     dispatch({ type: CHATBOT_CLEAR_MESSAGES });
+};
+
+/**
+ * Load conversation history from backend
+ */
+export const loadConversationHistory = (conversationId) => async (dispatch) => {
+    try {
+        dispatch({ type: CHATBOT_LOAD_HISTORY_REQUEST });
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('No authentication token found');
+        }
+
+        const response = await axios.get(
+            `${API_CONFIG.API_URL}/chatbot/conversation/${conversationId}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                withCredentials: true // Include cookies in request
+            }
+        );
+
+        const { messages } = response.data;
+
+        // Format messages to match frontend structure
+        const formattedMessages = messages.map(msg => ({
+            id: msg.messageId,
+            sender: msg.sender,
+            content: msg.content,
+            timestamp: msg.timestamp,
+            sources: msg.metadata?.sources || []
+        }));
+
+        dispatch({
+            type: CHATBOT_LOAD_HISTORY_SUCCESS,
+            payload: {
+                messages: formattedMessages,
+                conversationId: conversationId
+            }
+        });
+
+        console.log(`✅ Loaded ${formattedMessages.length} messages from conversation ${conversationId}`);
+
+    } catch (error) {
+        console.error('Load history error:', error);
+        dispatch({
+            type: CHATBOT_LOAD_HISTORY_FAIL,
+            payload: error.response?.data?.message || error.message
+        });
+    }
+};
+
+/**
+ * Start a new conversation
+ */
+export const startNewConversation = () => (dispatch) => {
+    dispatch({ type: CHATBOT_NEW_CONVERSATION });
+    console.log('🆕 Starting new conversation');
+};
+
+/**
+ * Set conversation ID
+ */
+export const setConversationId = (conversationId) => (dispatch) => {
+    dispatch({
+        type: CHATBOT_SET_CONVERSATION_ID,
+        payload: conversationId
+    });
 };

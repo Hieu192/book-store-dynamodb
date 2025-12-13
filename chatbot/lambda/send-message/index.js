@@ -1,6 +1,6 @@
 const { getItem, putItem, updateItem, queryItems } = require('dynamodb');
 const { verifyToken } = require('auth');
-const { queryKnowledgeBase, generateResponse } = require('bedrock');
+const { queryKnowledgeBase, generateResponseWithTools } = require('bedrock');
 const {
     sendToConnection,
     generateUUID,
@@ -105,14 +105,22 @@ async function handleAuthentication(connectionId, body, endpoint) {
     const email = authResult.email;
 
     // Build update expression dynamically
-    const updateParts = ['#status = :auth', 'userId = :uid', 'authenticatedAt = :authAt', '#ttl = :ttl'];
+    const updateParts = [
+        '#status = :auth',
+        'userId = :uid',
+        '#token = :token',  // Store token for API calls
+        'authenticatedAt = :authAt',
+        '#ttl = :ttl'
+    ];
     const expressionAttributeNames = {
         '#status': 'status',
+        '#token': 'token',
         '#ttl': 'ttl'
     };
     const expressionAttributeValues = {
         ':auth': 'AUTHENTICATED',
         ':uid': userId,
+        ':token': token,  // Store original JWT token
         ':authAt': getCurrentTimestamp(),
         ':ttl': getTTL(86400) // 24 hours
     };
@@ -235,15 +243,30 @@ async function handleChatMessage(connectionId, body, endpoint) {
         // Continue without KB results
     }
 
-    // Generate response with Claude
+    // Generate response with Claude + Function Calling
     let botResponseText;
     let sources = [];
+    let toolsUsed = [];
 
     try {
-        const response = await generateResponse(userMessage, kbResults, conversationHistory);
+        // Get auth token from connection for API calls
+        const authToken = connection.token || null;
+        console.log(`🔑 authToken available: ${!!authToken}, length: ${authToken?.length || 0}`);
+
+        const response = await generateResponseWithTools(
+            userMessage,
+            conversationHistory,
+            authToken  // Pass token for order API calls
+        );
+
         botResponseText = response.text;
         sources = response.sources || [];
+        toolsUsed = response.toolsUsed || [];
+
         console.log(`Generated response: "${botResponseText.substring(0, 50)}..."`);
+        if (toolsUsed.length > 0) {
+            console.log(`Tools used: ${toolsUsed.map(t => t.tool).join(', ')}`);
+        }
     } catch (genError) {
         console.error('Response generation failed:', genError);
         botResponseText = 'Xin lỗi, tôi đang gặp sự cố kỹ thuật. Vui lòng thử lại sau.';

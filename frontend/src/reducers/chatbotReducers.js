@@ -13,6 +13,11 @@ import {
     CHATBOT_TYPING_STOP,
     CHATBOT_TOGGLE_WIDGET,
     CHATBOT_CLEAR_MESSAGES,
+    CHATBOT_LOAD_HISTORY_REQUEST,
+    CHATBOT_LOAD_HISTORY_SUCCESS,
+    CHATBOT_LOAD_HISTORY_FAIL,
+    CHATBOT_NEW_CONVERSATION,
+    CHATBOT_SET_CONVERSATION_ID,
     CHATBOT_ERROR
 } from '../constants/chatbotConstants';
 
@@ -20,6 +25,7 @@ const initialState = {
     connected: false,
     authenticated: false,
     loading: false,
+    loadingHistory: false,
     isOpen: false,
     messages: [],
     isTyping: false,
@@ -101,13 +107,19 @@ export const chatbotReducer = (state = initialState, action) => {
             };
 
         case CHATBOT_RECEIVE_MESSAGE:
+            // Save conversationId to localStorage when we receive it from backend
+            const newConversationId = action.payload.conversationId || state.conversationId;
+            if (newConversationId && newConversationId !== state.conversationId) {
+                localStorage.setItem('chatbot_conversationId', newConversationId);
+            }
+
             return {
                 ...state,
                 messages: [
                     ...state.messages,
                     action.payload
                 ],
-                conversationId: action.payload.conversationId || state.conversationId,
+                conversationId: newConversationId,
                 isTyping: false
             };
 
@@ -130,10 +142,53 @@ export const chatbotReducer = (state = initialState, action) => {
             };
 
         case CHATBOT_CLEAR_MESSAGES:
+            // Clear messages but keep conversationId null to start fresh
+            localStorage.removeItem('chatbot_conversationId');
             return {
                 ...state,
                 messages: [],
                 conversationId: null
+            };
+
+        case CHATBOT_LOAD_HISTORY_REQUEST:
+            return {
+                ...state,
+                loadingHistory: true,
+                error: null
+            };
+
+        case CHATBOT_LOAD_HISTORY_SUCCESS:
+            return {
+                ...state,
+                loadingHistory: false,
+                messages: action.payload.messages,
+                conversationId: action.payload.conversationId
+            };
+
+        case CHATBOT_LOAD_HISTORY_FAIL:
+            return {
+                ...state,
+                loadingHistory: false,
+                error: action.payload
+            };
+
+        case CHATBOT_NEW_CONVERSATION:
+            // Start a new conversation
+            localStorage.removeItem('chatbot_conversationId');
+            return {
+                ...state,
+                messages: [],
+                conversationId: null
+            };
+
+        case CHATBOT_SET_CONVERSATION_ID:
+            // Save conversationId to localStorage for persistence
+            if (action.payload) {
+                localStorage.setItem('chatbot_conversationId', action.payload);
+            }
+            return {
+                ...state,
+                conversationId: action.payload
             };
 
         case CHATBOT_ERROR:
@@ -141,6 +196,7 @@ export const chatbotReducer = (state = initialState, action) => {
                 ...state,
                 error: action.payload,
                 loading: false,
+                loadingHistory: false,
                 isTyping: false
             };
 

@@ -192,41 +192,47 @@ class DynamoProductRepository extends IProductRepository {
 
     let items = [];
 
-    // Query by category if provided
+    // ✅ STEP 1: Query ALL items first (without pagination)
+    // This ensures we get accurate count for pagination calculation
     if (category) {
-      items = await this._queryByCategory(category, limit, page);
+      items = await this._queryByCategory(category, 0, 1); // Get ALL items
     } else {
-      // Scan all products (expensive, should be avoided in production)
-      items = await this._scanProducts(limit, page);
+      items = await this._scanProducts(0, 1); // Get ALL items
     }
 
-    // Apply filters
-    items = this._applyFilters(items, { keyword, price, ratings, ...otherFilters });
+    // ✅ STEP 2: Apply filters to get filtered count
+    const filteredItems = this._applyFilters(items, { keyword, price, ratings, ...otherFilters });
 
-    // Sort
+    // ✅ STEP 3: Sort
     if (sortByPrice) {
-      // Support both numeric (1, -1) and string ('asc', 'desc') formats
       const isAscending = sortByPrice === 'asc' || sortByPrice === '1' || sortByPrice === 1;
-      items.sort((a, b) => isAscending ? a.price - b.price : b.price - a.price);
+      filteredItems.sort((a, b) => isAscending ? a.price - b.price : b.price - a.price);
     }
 
-    const totalCount = items.length;
+    const totalCount = filteredItems.length;
 
-    // Handle pagination
+    // ✅ STEP 4: Apply pagination
     let paginatedItems;
-    if (limit === 0 || limit === '0') {
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    if (limitNum === 0 || limitNum === '0' || isNaN(limitNum)) {
       // Return all items if limit is 0
-      paginatedItems = items;
+      paginatedItems = filteredItems;
     } else {
-      const startIndex = (page - 1) * limit;
-      paginatedItems = items.slice(startIndex, startIndex + limit);
+      const startIndex = (pageNum - 1) * limitNum;
+      paginatedItems = filteredItems.slice(startIndex, startIndex + limitNum);
     }
+
+    const totalPages = (limitNum > 0 && !isNaN(limitNum))
+      ? Math.ceil(totalCount / limitNum)
+      : 1;
 
     return {
       products: paginatedItems.map(item => this._transformFromDynamo(item)),
-      count: totalCount,
-      page: parseInt(page),
-      pages: limit > 0 ? Math.ceil(totalCount / limit) : 1
+      count: totalCount, // Total filtered count
+      page: pageNum,
+      pages: totalPages
     };
   }
 
@@ -237,6 +243,8 @@ class DynamoProductRepository extends IProductRepository {
   async _queryByCategory(category, limit, page) {
     let items = [];
     let lastEvaluatedKey = null;
+
+    console.log(`🔍 Querying category: "${category}"`);
 
     // ✅ Handle limit = 0 (get ALL items)
     const shouldGetAll = (limit === 0 || limit === '0');
@@ -267,6 +275,8 @@ class DynamoProductRepository extends IProductRepository {
       items = items.concat(result.Items);
       lastEvaluatedKey = result.LastEvaluatedKey;
 
+      console.log(`📊 Query returned ${result.Items.length} items, total so far: ${items.length}`);
+
       // ✅ STOP EARLY when we have enough items (unless getting all)
       if (!shouldGetAll && items.length >= maxItemsNeeded) {
         break;
@@ -279,6 +289,7 @@ class DynamoProductRepository extends IProductRepository {
 
     } while (true);
 
+    console.log(`✅ Total items found for category "${category}": ${items.length}`);
     return items;
   }
 

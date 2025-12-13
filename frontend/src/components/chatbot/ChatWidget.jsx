@@ -22,7 +22,9 @@ import {
     disconnectChatbot,
     toggleChatbot,
     sendMessage,
-    clearMessages
+    clearMessages,
+    loadConversationHistory,
+    startNewConversation
 } from '../../actions/chatbotActions';
 import ChatMessages from './ChatMessages';
 import ChatInput from './ChatInput';
@@ -34,7 +36,7 @@ const ChatWidget = () => {
     const messagesEndRef = useRef(null);
 
     const { isAuthenticated, user } = useSelector((state) => state.auth);
-    const { isOpen, connected, authenticated, messages, isTyping, error } = useSelector(
+    const { isOpen, connected, authenticated, messages, isTyping, error, conversationId, loadingHistory } = useSelector(
         (state) => state.chatbot
     );
 
@@ -44,6 +46,19 @@ const ChatWidget = () => {
             dispatch(connectChatbot());
         }
     }, [isAuthenticated, isOpen, connected, dispatch]);
+
+    // Load conversation history when authenticated
+    useEffect(() => {
+        if (authenticated && connected && !loadingHistory) {
+            // Check if there's a saved conversationId in localStorage
+            const savedConversationId = localStorage.getItem('chatbot_conversationId');
+
+            if (savedConversationId && messages.length === 0) {
+                console.log('📜 Loading conversation history:', savedConversationId);
+                dispatch(loadConversationHistory(savedConversationId));
+            }
+        }
+    }, [authenticated, connected, dispatch, loadingHistory]);
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
@@ -73,6 +88,10 @@ const ChatWidget = () => {
 
     const handleClearMessages = () => {
         dispatch(clearMessages());
+    };
+
+    const handleNewConversation = () => {
+        dispatch(startNewConversation());
     };
 
     // Get unread message count (simple implementation)
@@ -130,6 +149,7 @@ const ChatWidget = () => {
                         authenticated={authenticated}
                         onClose={handleToggle}
                         onClear={handleClearMessages}
+                        onNewConversation={handleNewConversation}
                     />
 
                     {/* Messages */}
@@ -140,6 +160,7 @@ const ChatWidget = () => {
                         error={error}
                         connected={connected}
                         authenticated={authenticated}
+                        loadingHistory={loadingHistory}
                     />
 
                     {/* Input */}

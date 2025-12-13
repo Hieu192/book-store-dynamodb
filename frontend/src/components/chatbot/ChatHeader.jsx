@@ -3,11 +3,12 @@ import { Box, Typography, IconButton, Tooltip, Chip } from '@mui/material';
 import {
     Close as CloseIcon,
     DeleteOutline as DeleteIcon,
-    Circle as CircleIcon
+    Circle as CircleIcon,
+    AddComment as AddCommentIcon
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 
-const ChatHeader = ({ connected, authenticated, onClose, onClear }) => {
+const ChatHeader = ({ connected, authenticated, onClose, onClear, onNewConversation }) => {
     const { t } = useTranslation();
 
     const getStatusColor = () => {
@@ -66,6 +67,15 @@ const ChatHeader = ({ connected, authenticated, onClose, onClear }) => {
             </Box>
 
             <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <Tooltip title={t('chatbot.newConversation') || 'New Conversation'}>
+                    <IconButton
+                        onClick={onNewConversation}
+                        size="small"
+                        sx={{ color: 'white' }}
+                    >
+                        <AddCommentIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
                 <Tooltip title={t('chatbot.clearHistory') || 'Clear History'}>
                     <IconButton
                         onClick={onClear}

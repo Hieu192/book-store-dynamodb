@@ -8,7 +8,8 @@
 const MongoProductRepository = require('./mongodb/MongoProductRepository');
 const MongoUserRepository = require('./mongodb/MongoUserRepository');
 
-// DynamoDB Repositories (future)
+// DynamoDB Repositories
+const DynamoChatbotRepository = require('./dynamodb/DynamoChatbotRepository');
 // const DynamoProductRepository = require('./dynamodb/DynamoProductRepository');
 // const DynamoUserRepository = require('./dynamodb/DynamoUserRepository');
 
@@ -16,10 +17,11 @@ class RepositoryFactory {
   constructor() {
     // Get database type from environment variable
     this.dbType = process.env.DB_TYPE || 'mongodb';
-    
+
     // Cache repositories
     this._productRepository = null;
     this._userRepository = null;
+    this._chatbotRepository = null;
   }
 
   /**
@@ -35,12 +37,12 @@ class RepositoryFactory {
       case 'mongodb':
         this._productRepository = new MongoProductRepository();
         break;
-      
+
       case 'dynamodb':
         // Uncomment when DynamoDB implementation is ready
         // this._productRepository = new DynamoProductRepository();
         throw new Error('DynamoDB implementation not yet available');
-      
+
       default:
         throw new Error(`Unsupported database type: ${this.dbType}`);
     }
@@ -61,17 +63,33 @@ class RepositoryFactory {
       case 'mongodb':
         this._userRepository = new MongoUserRepository();
         break;
-      
+
       case 'dynamodb':
         // Uncomment when DynamoDB implementation is ready
         // this._userRepository = new DynamoUserRepository();
         throw new Error('DynamoDB implementation not yet available');
-      
+
       default:
         throw new Error(`Unsupported database type: ${this.dbType}`);
     }
 
     return this._userRepository;
+  }
+
+  /**
+   * Get Chatbot Repository
+   * Note: Chatbot only supports DynamoDB (WebSocket connections are stored there)
+   * @returns {DynamoChatbotRepository}
+   */
+  getChatbotRepository() {
+    if (this._chatbotRepository) {
+      return this._chatbotRepository;
+    }
+
+    // Chatbot always uses DynamoDB regardless of DB_TYPE
+    // because WebSocket connections and conversations are stored in DynamoDB
+    this._chatbotRepository = new DynamoChatbotRepository();
+    return this._chatbotRepository;
   }
 
   /**
@@ -87,6 +105,7 @@ class RepositoryFactory {
   reset() {
     this._productRepository = null;
     this._userRepository = null;
+    this._chatbotRepository = null;
   }
 }
 

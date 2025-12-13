@@ -16,6 +16,8 @@ const chatbotTranslations = {
             openChat: 'Mở chat',
             close: 'Đóng',
             clearHistory: 'Xóa lịch sử',
+            newConversation: 'Cuộc trò chuyện mới',
+            loadingHistory: 'Đang tải lịch sử trò chuyện...',
             retry: 'Thử lại',
         }
     },
@@ -35,6 +37,8 @@ const chatbotTranslations = {
             openChat: 'Open chat',
             close: 'Close',
             clearHistory: 'Clear history',
+            newConversation: 'New Conversation',
+            loadingHistory: 'Loading conversation history...',
             retry: 'Retry',
         }
     }

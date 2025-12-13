@@ -32,6 +32,7 @@ const payment = require("./routes/payment");
 const order = require("./routes/order");
 const category = require("./routes/category");
 const migration = require("./routes/migration");
+const chatbot = require("./routes/chatbot");
 
 // Health check endpoint for ALB/Docker
 app.get("/health", (req, res) => {
@@ -45,6 +46,7 @@ app.use("/api/v1", payment);
 app.use("/api/v1", order);
 app.use("/api/v1", category);
 app.use("/api/v1/migration", migration);
+app.use("/api/v1", chatbot);
 
 // Serve migration dashboard
 app.use(express.static(path.join(__dirname, "public")));

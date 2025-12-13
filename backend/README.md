@@ -67,7 +67,7 @@ backend/
 - `/api/v1/payment` - Thanh toán
 - `/api/v1/category` - Danh mục
 
-## 🚀 Cài Đặt
+##  Cài Đặt
 
 ### Prerequisites
 ```bash

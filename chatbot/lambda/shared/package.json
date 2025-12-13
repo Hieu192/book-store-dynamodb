@@ -1,0 +1,10 @@
+{
+    "name": "chatbot-shared-layer",
+    "version": "1.0.0",
+    "description": "Shared utilities and dependencies for chatbot Lambda functions",
+    "main": "bedrock.js",
+    "dependencies": {
+        "axios": "^1.6.2",
+        "aws-sdk": "^2.1498.0"
+    }
+}

@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const axios = require('axios');
 
 const BEDROCK_REGION = 'us-east-1';
 
@@ -11,15 +12,29 @@ const bedrockAgent = new AWS.BedrockAgentRuntime({
 });
 
 const KNOWLEDGE_BASE_ID = process.env.KNOWLEDGE_BASE_ID;
-const MODEL_ID = 'amazon.nova-lite-v1:0';  // Corrected model ID
+const MODEL_ID = 'amazon.nova-lite-v1:0';
+const BACKEND_API_URL = process.env.BACKEND_API_URL || 'http://localhost:4000/api/v1';
+
+// Import modular prompts
+const PERSONA = require('./prompts/persona');
+const PRODUCT_RECOMMENDATIONS = require('./prompts/productRecommendations');
+const ORDER_MANAGEMENT = require('./prompts/orderManagement');
+const SECURITY_RULES = require('./prompts/securityRules');
+
+// Import tools
+const ORDER_TOOLS = require('./tools/orderTools');
 
 function isVietnamese(text) {
     return /[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]/i.test(text);
 }
 
+/**
+ * Query Knowledge Base for product information
+ */
 async function queryKnowledgeBase(query, numberOfResults = 5) {
     if (!KNOWLEDGE_BASE_ID) {
-        throw new Error('KNOWLEDGE_BASE_ID not configured');
+        console.log('⚠️ KNOWLEDGE_BASE_ID not configured, skipping KB query');
+        return [];
     }
 
     try {
@@ -32,257 +47,281 @@ async function queryKnowledgeBase(query, numberOfResults = 5) {
         };
 
         const response = await bedrockAgent.retrieve(params).promise();
-        console.log(`Retrieved ${response.retrievalResults?.length || 0} documents from KB`);
+        console.log(`📚 Retrieved ${response.retrievalResults?.length || 0} documents from KB`);
         return response.retrievalResults || [];
     } catch (error) {
-        console.error('Knowledge Base query error:', error);
-        throw error;
+        console.error('❌ Knowledge Base query error:', error);
+        return []; // Return empty array instead of throwing
     }
 }
 
-async function generateResponse(userMessage, kbResults = [], conversationHistory = []) {
+/**
+ * Build modular system prompt
+ */
+function buildSystemPrompt(features = {}) {
+    const {
+        hasOrderTracking = false,
+        hasProductRecommendations = true
+    } = features;
+
+    let sections = [PERSONA];
+
+    if (hasProductRecommendations) {
+        sections.push(PRODUCT_RECOMMENDATIONS);
+    }
+
+    if (hasOrderTracking) {
+        sections.push(ORDER_MANAGEMENT);
+    }
+
+    sections.push(SECURITY_RULES);
+
+    return sections.join('\n\n');
+}
+
+/**
+ * Execute tool call by calling backend APIs
+ * Uses EXISTING order controller endpoints - no duplication
+ */
+async function executeToolCall(toolName, toolInput, authToken) {
+    console.log(`🔧 Executing tool: ${toolName}`, toolInput);
+
     try {
+        switch (toolName) {
+            case 'get_user_orders': {
+                // ✅ Use existing endpoint: GET /api/v1/orders/me
+                const response = await axios.get(
+                    `${BACKEND_API_URL}/orders/me`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        timeout: 5000
+                    }
+                );
+
+                console.log(`✅ Tool response: ${response.data.orders.length} orders found`);
+                return {
+                    success: true,
+                    orders: response.data.orders,
+                    count: response.data.orders.length
+                };
+            }
+
+            case 'get_order_details': {
+                // ✅ Use existing endpoint: GET /api/v1/order/:id
+                const { orderId } = toolInput;
+
+                if (!orderId) {
+                    return {
+                        success: false,
+                        error: 'Order ID is required'
+                    };
+                }
+
+                const response = await axios.get(
+                    `${BACKEND_API_URL}/order/${orderId}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        timeout: 5000
+                    }
+                );
+
+                console.log(`✅ Tool response: Order details retrieved`);
+                return {
+                    success: true,
+                    order: response.data.order
+                };
+            }
+
+            default:
+                console.error(`❌ Unknown tool: ${toolName}`);
+                return {
+                    success: false,
+                    error: `Unknown tool: ${toolName}`
+                };
+        }
+    } catch (error) {
+        console.error(`❌ Tool execution error for ${toolName}:`, error.message);
+
+        if (error.response) {
+            return {
+                success: false,
+                error: error.response.data?.message || 'API error occurred',
+                statusCode: error.response.status
+            };
+        }
+
+        return {
+            success: false,
+            error: error.message || 'Failed to execute tool'
+        };
+    }
+}
+
+/**
+ * Generate response with Function Calling support
+ */
+async function generateResponseWithTools(userMessage, conversationHistory = [], authToken = null) {
+    try {
+        console.log('🤖 Starting generateResponseWithTools...');
+
         const isVN = isVietnamese(userMessage);
-        const targetLanguage = isVN ? 'Vietnamese' : 'English';
+
+        // Build system prompt with order tracking if auth token available
+        const systemPrompt = buildSystemPrompt({
+            hasOrderTracking: !!authToken,
+            hasProductRecommendations: true
+        });
+
+        // Query Knowledge Base for product info
+        let kbResults = [];
+        try {
+            kbResults = await queryKnowledgeBase(userMessage, 3);
+        } catch (kbError) {
+            console.error('KB query failed, continuing without it:', kbError);
+        }
 
         // Format KB context
         let kbContext = '';
-        const sources = [];
-
         if (kbResults && kbResults.length > 0) {
-            kbContext = 'AVAILABLE BOOKS IN OUR STORE:\n\n';
+            kbContext = '\n\nAVAILABLE BOOKS IN STORE:\n';
             kbResults.forEach((result, index) => {
-                kbContext += `Book ${index + 1}:\n${result.content.text}\n---\n`;
-                if (result.location) {
-                    sources.push({
-                        uri: result.location.s3Location?.uri,
-                        score: result.score
-                    });
-                }
+                kbContext += `\nBook ${index + 1}:\n${result.content.text}\n`;
             });
         }
 
-        // Format conversation history
-        let historyContext = '';
-        if (conversationHistory.length > 0) {
-            historyContext = 'Recent conversation:\n';
-            conversationHistory.forEach(msg => {
-                historyContext += `${msg.sender === 'user' ? 'Customer' : 'You'}: ${msg.content}\n`;
-            });
-            historyContext += '\n';
-        }
+        // Build messages for Converse API
+        const messages = [
+            ...conversationHistory.map(msg => ({
+                role: msg.sender === 'user' ? 'user' : 'assistant',
+                content: [{ text: msg.content }]
+            })),
+            {
+                role: 'user',
+                content: [{ text: userMessage + kbContext }]
+            }
+        ];
 
-        // Professional salesperson system prompt
-        const systemPrompt = `You are a professional book salesperson at an online bookstore. Your goal is to help customers find the perfect book.
+        // Prepare tools (only if authenticated)
+        const tools = authToken ? ORDER_TOOLS : [];
+        console.log(`🔧 Tools configuration: authToken=${!!authToken}, tools count=${tools.length}`);
 
-PERSONA:
-- Friendly, helpful, and consultative (not pushy)
-- Knowledgeable about books in your store
-- Ask smart questions to understand customer needs
-- Provide honest recommendations based on what you have
+        let continueLoop = true;
+        let finalResponse = '';
+        let toolResults = [];
 
-LANGUAGE RULE (CRITICAL):
-${isVN ?
-                'Customer speaks Vietnamese. You MUST respond in Vietnamese with proper Vietnamese grammar and tone.' :
-                'Customer speaks English. You MUST respond in English.'}
-NEVER mix languages. NEVER use English if customer uses Vietnamese.
-
-SALES APPROACH:
-
-1. WHEN TO ASK QUESTIONS:
-   Ask clarifying questions if customer request is:
-   - Too vague: "sach hay", "recommend books" (no genre/preference)
-   - Only emotion: "buon", "vui", "sad", "happy" (no book type specified)
-   - Too broad: "sach tot nhat", "best books" (which category?)
-   
-   Ask specifically about:
-   ${isVN ? '- The loai: manga, tieu thuyet, ky nang song, kinh doanh?' : '- Genre: manga, novel, self-help, business?'}
-   ${isVN ? '- Ngan sach: duoi $10, $10-20, tren $20?' : '- Budget: under $10, $10-20, over $20?'}
-   ${isVN ? '- So thich: hanh dong, lang man, hai huoc, bieu dam?' : '- Interest: action, romance, comedy, deep?'}
-
-2. WHEN TO RECOMMEND:
-   Provide recommendations when customer gives:
-   - Specific genre: "manga", "self-help books"
-   - Genre + preference: "manga phieu luu", "adventure manga"
-   - Genre + budget: "manga duoi $15"
-   
-   Format MUST include:
-   - Book title (bold with **)
-   - Author (${isVN ? 'Tac gia' : 'Author'})
-   - Price (${isVN ? 'Gia' : 'Price'}) with $ sign
-   - Category (${isVN ? 'The loai' : 'Category'})
-   - Why recommend (1 sentence)
-
-3. WHEN NOT IN STOCK:
-   If book NOT in [AVAILABLE BOOKS], be honest:
-   ${isVN ?
-                '"Xin loi, hien tai shop chua co [book name]. Tuy nhien, neu ban thich [genre], toi co the goi y [alternative]."' :
-                '"Sorry, we dont currently have [book name] in stock. However, if you like [genre], I can recommend [alternative]."'}
-   
-   NEVER say: "tim o noi khac", "mua online", "tim sap sach khac" (dont send customers away!)
-   ALWAYS offer alternatives from your store.
-
-TONE EXAMPLES:
-${isVN ? `
-GOOD (Professional salesperson):
-- "Chao ban! Ban dang tim sach the loai gi a?"
-- "Toi hieu ban thich truyen phieu luu! Chung toi co vai dau sach tuyet voi..."
-- "Rat tiec, hien tai shop chua co Harry Potter. Neu ban thich fantasy, toi goi y..."
-
-BAD (Too robotic):
-- "Toi khong co thong tin nay"
-- "Ban co the tim o noi khac"
-- "ASSISTANT (Vietnamese):"
-` : `
-GOOD (Professional salesperson):
-- "Hi! What genre are you interested in?"
-- "I understand you like adventure stories! We have some excellent titles..."
-- "Unfortunately, we don't have Harry Potter right now. If you enjoy fantasy, I recommend..."
-
-BAD (Too robotic):
-- "I dont have this information"
-- "You can find it elsewhere"
-- "ASSISTANT (English):"
-`}
-
-RESPONSE FORMAT:
-- Speak naturally like a real salesperson
-- End after your answer (no "thank you for shopping" unless closing sale)
-- Use customer's name if known
-- Be warm but professional
-
-EXAMPLES:
-${isVN ? `
-Customer: "goi y sach hay"
-You: "Chao ban! Rat vui duoc giup ban tim sach. Ban dang muon tim sach the loai gi a? Chung toi co manga, tieu thuyet, sach ky nang song, kinh doanh..."
-
-Customer: "manga phieu luu hay"
-You: "Tuyet voi! Toi xin goi y 2 bo manga phieu luu cuc hay:
-
-**One Piece - Tap 1**
-- Tac gia: Eiichiro Oda
-- Gia: $10
-- The loai: Manga, Phieu luu
-- Cau chuyen ve Luffy va hanh trinh tim kho bau huyen thoai One Piece - rat hap dan!
-
-**Naruto - Tap 1**
-- Tac gia: Masashi Kishimoto  
-- Gia: $12
-- The loai: Manga, Hanh dong, Phieu luu
-- Theo chan ninja Naruto voi uoc mo tro thanh Hokage - rat cam hung!
-
-Ban thich bo nao hon a?"
-
-Customer: "co Harry Potter khong?"
-You: "Xin loi ban, hien tai shop chua co bo Harry Potter. Tuy nhien, neu ban thich sach fantasy phep thuat, toi rat muon goi y ban bo Chua Nhan - cung la the gioi phep thuat day ky ao va phieu luu! Ban co muon xem khong?"
-` : `
-Customer: "recommend good books"
-You: "Hi! I'd love to help you find something great. What genre interests you? We have manga, novels, self-help, business books..."
-
-Customer: "adventure manga"
-You: "Excellent choice! I recommend these 2 fantastic adventure manga:
-
-**One Piece - Volume 1**
-- Author: Eiichiro Oda
-- Price: $10
-- Category: Manga, Adventure
-- Luffy's epic quest for the legendary One Piece treasure - absolutely gripping!
-
-**Naruto - Volume 1**
-- Author: Masashi Kishimoto
-- Price: $12
-- Category: Manga, Action, Adventure  
-- Follow young ninja Naruto's journey to become Hokage - very inspiringAre you interested in either of these?"
-
-Customer: "do you have Harry Potter?"
-You: "I'm sorry, we don't currently have Harry Potter in stock. However, if you enjoy fantasy wizardry, I'd love to recommend The Lord of the Rings - it's also a magical world full of wonder and adventure! Would you like to hear more?"
-`}`;
-
-        const userContent = `${historyContext}
-${kbContext.length > 0 ? kbContext : 'NOTE: No books found in knowledge base for this query'}
-
-Customer says: "${userMessage}"
-
-Respond as a helpful book salesperson:`;
-
-        console.log(`Generating Nova response in: ${targetLanguage}`);
-
-        // Nova API format (messages array)
-        const params = {
-            modelId: MODEL_ID,
-            contentType: 'application/json',
-            accept: 'application/json',
-            body: JSON.stringify({
-                messages: [
-                    {
-                        role: "user",
-                        content: [
-                            {
-                                text: `${systemPrompt}\n\n${userContent}`
-                            }
-                        ]
-                    }
-                ],
+        while (continueLoop) {
+            const params = {
+                modelId: MODEL_ID,
+                messages: messages,
+                system: [{ text: systemPrompt }],
                 inferenceConfig: {
-                    maxTokens: 1000,
+                    maxTokens: 2048,
                     temperature: 0.7,
                     topP: 0.9
                 }
-            })
+            };
+
+            // Only add toolConfig if we have tools
+            if (tools.length > 0) {
+                params.toolConfig = { tools };
+            }
+
+            console.log('📡 Calling Bedrock Converse API...');
+            const response = await bedrockRuntime.converse(params).promise();
+
+            const { stopReason, output } = response;
+            console.log(`📊 Stop reason: ${stopReason}`);
+
+            if (stopReason === 'tool_use') {
+                // Find tool use block
+                const toolUseBlock = output.message.content.find(block => block.toolUse);
+
+                if (toolUseBlock && authToken) {
+                    const { toolUse } = toolUseBlock;
+                    console.log(`🔧 Tool requested: ${toolUse.name}`);
+
+                    // Execute the tool
+                    const toolResult = await executeToolCall(toolUse.name, toolUse.input, authToken);
+                    toolResults.push({ tool: toolUse.name, result: toolResult });
+
+                    // Add assistant's tool use to messages
+                    messages.push({
+                        role: 'assistant',
+                        content: output.message.content
+                    });
+
+                    // Add tool result to messages
+                    messages.push({
+                        role: 'user',
+                        content: [{
+                            toolResult: {
+                                toolUseId: toolUse.toolUseId,
+                                content: [{ json: toolResult }]
+                            }
+                        }]
+                    });
+
+                    // Continue loop to get final response
+                    continue;
+                } else {
+                    // Tool use but no auth token - shouldn't happen with our logic
+                    finalResponse = 'Xin lỗi, em cần xác thực để thực hiện yêu cầu này.';
+                    continueLoop = false;
+                }
+            }
+            else if (stopReason === 'end_turn') {
+                // Extract text response
+                const textBlock = output.message.content.find(block => block.text);
+                finalResponse = textBlock ? textBlock.text : 'Xin lỗi, em không hiểu câu hỏi của anh/chị.';
+                continueLoop = false;
+            }
+            else {
+                // Other stop reasons (max_tokens, etc.)
+                finalResponse = 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.';
+                continueLoop = false;
+            }
+        }
+
+        console.log('✅ Response generated successfully');
+
+        return {
+            text: finalResponse,
+            sources: kbResults.map(r => ({
+                uri: r.location?.s3Location?.uri,
+                score: r.score
+            })),
+            toolsUsed: toolResults
         };
 
-        const response = await bedrockRuntime.invokeModel(params).promise();
-        const result = JSON.parse(response.body.toString());
-
-        // Nova response format
-        let text = result.output.message.content[0].text.trim();
-
-        // Clean up any artifacts
-        text = text
-            .replace(/^(You:|Assistant:|ASSISTANT \(.*?\):)\s*/gim, '')
-            .replace(/\n*(Thank you for shopping|Cam on ban da mua hang).*$/gim, '')
-            .trim();
-
-        return { text, sources, model: MODEL_ID };
     } catch (error) {
-        console.error('Bedrock Nova error:', error);
-        throw error;
+        console.error('❌ generateResponseWithTools error:', error);
+
+        return {
+            text: 'Xin lỗi, em đang gặp sự cố kỹ thuật. Vui lòng thử lại sau.',
+            sources: [],
+            error: error.message
+        };
     }
 }
 
-async function retrieveAndGenerate(userMessage) {
-    if (!KNOWLEDGE_BASE_ID) {
-        throw new Error('KNOWLEDGE_BASE_ID not configured');
-    }
-
-    try {
-        const params = {
-            input: { text: userMessage },
-            retrieveAndGenerateConfiguration: {
-                type: 'KNOWLEDGE_BASE',
-                knowledgeBaseConfiguration: {
-                    knowledgeBaseId: KNOWLEDGE_BASE_ID,
-                    modelArn: `arn:aws:bedrock:${BEDROCK_REGION}::foundation-model/${MODEL_ID}`
-                }
-            }
-        };
-
-        const response = await bedrockAgent.retrieveAndGenerate(params).promise();
-        return {
-            text: response.output.text,
-            sources: response.citations || [],
-            sessionId: response.sessionId
-        };
-    } catch (error) {
-        console.error('RetrieveAndGenerate error:', error);
-        throw error;
-    }
+/**
+ * Legacy function for backwards compatibility
+ */
+async function generateResponse(userMessage, kbResults = [], conversationHistory = []) {
+    // This is the old function - redirect to new implementation
+    return generateResponseWithTools(userMessage, conversationHistory, null);
 }
 
 module.exports = {
     queryKnowledgeBase,
     generateResponse,
-    retrieveAndGenerate,
-    KNOWLEDGE_BASE_ID,
-    MODEL_ID
+    generateResponseWithTools,
+    executeToolCall,
+    buildSystemPrompt
 };
