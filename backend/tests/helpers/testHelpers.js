@@ -12,11 +12,15 @@ const Product = require('../../models/product');
 const Order = require('../../models/order');
 const Category = require('../../models/category');
 
+// ✅ TEST DATA MARKER - Used to identify test data for safe cleanup
+const TEST_EMAIL_PREFIX = 'TEST_';
+const TEST_NAME_PREFIX = 'TEST_';
+
 // Helper to create test user (works with both MongoDB & DynamoDB)
 const createTestUser = async (userData = {}) => {
   const defaultUser = {
-    name: 'Test User',
-    email: `test${Date.now()}@example.com`,
+    name: `${TEST_NAME_PREFIX}User_${Date.now()}`,
+    email: `${TEST_EMAIL_PREFIX}${Date.now()}@example.com`,
     password: 'password123',
     avatar: {
       public_id: 'test_avatar',
@@ -49,17 +53,18 @@ const createAdminUser = async (userData = {}) => {
 
 // Helper to create test product (works with both MongoDB & DynamoDB)
 const createTestProduct = async (userId, productData = {}) => {
+  const timestamp = Date.now();
   const defaultProduct = {
-    name: 'Test Product',
+    name: `${TEST_NAME_PREFIX}Product_${timestamp}`,
     price: 99.99,
-    description: 'Test product description',
+    description: `${TEST_NAME_PREFIX}product description`,
     ratings: 4.5,
     images: [{
-      public_id: 'test_image',
+      public_id: `${TEST_NAME_PREFIX}image_${timestamp}`,
       url: 'https://example.com/product.jpg'
     }],
-    category: 'Electronics',
-    seller: 'Test Seller',
+    category: `${TEST_NAME_PREFIX}Electronics`,
+    seller: `${TEST_NAME_PREFIX}Seller`,
     stock: 10,
     numOfReviews: 0,
     reviews: [],
@@ -102,12 +107,13 @@ const createTestProduct = async (userId, productData = {}) => {
   return product;
 };
 
-// Helper to create test category (still uses MongoDB model - can update later)
+// Helper to create test category
 const createTestCategory = async (categoryData = {}) => {
+  const timestamp = Date.now();
   const defaultCategory = {
-    name: 'Test Category',
+    name: `${TEST_NAME_PREFIX}Category_${timestamp}`,
     images: [{
-      public_id: 'test_category_image',
+      public_id: `${TEST_NAME_PREFIX}category_${timestamp}`,
       url: 'https://example.com/category.jpg'
     }]
   };
@@ -117,27 +123,28 @@ const createTestCategory = async (categoryData = {}) => {
   return category;
 };
 
-// Helper to create test order (still uses MongoDB model - can update later)
+// Helper to create test order
 const createTestOrder = async (userId, orderData = {}) => {
+  const timestamp = Date.now();
   const defaultOrder = {
     shippingInfo: {
-      address: '123 Test Street',
-      city: 'Test City',
+      address: `${TEST_NAME_PREFIX}123 Test Street`,
+      city: `${TEST_NAME_PREFIX}City`,
       phoneNo: '1234567890',
       postalCode: '12345',
-      country: 'Test Country'
+      country: `${TEST_NAME_PREFIX}Country`
     },
     user: userId,
-    orderCode: Date.now(),
+    orderCode: timestamp,
     orderItems: [{
-      name: 'Test Product',
+      name: `${TEST_NAME_PREFIX}Product`,
       quantity: 1,
       image: 'https://example.com/product.jpg',
       price: 99.99,
       product: '507f1f77bcf86cd799439011' // dummy product id
     }],
     paymentInfo: {
-      id: 'test_payment_id',
+      id: `${TEST_NAME_PREFIX}payment_${timestamp}`,
       status: 'succeeded'
     },
     itemsPrice: 99.99,
@@ -149,22 +156,16 @@ const createTestOrder = async (userId, orderData = {}) => {
 
   const finalOrderData = { ...defaultOrder, ...orderData };
 
-  // ✅ Reduce stock for order items (matching new business logic)
-  if (finalOrderData.orderItems && Array.isArray(finalOrderData.orderItems)) {
-    for (const item of finalOrderData.orderItems) {
-      // Only reduce stock if product ID is not the dummy ID
-      if (item.product && item.product !== '507f1f77bcf86cd799439011') {
-        try {
-          await productService.updateStock(item.product, -item.quantity);
-        } catch (error) {
-          // Ignore errors for non-existent products (test data)
-          console.log(`⚠️  Could not reduce stock for product ${item.product}: ${error.message}`);
-        }
-      }
-    }
-  }
+  // ✅ BUSINESS RULE: OrderService.createOrder() does NOT reduce stock
+  // Stock reduction happens in the controller layer (orderController.refactored.js)
+  // Test helper creates order directly via service, so NO stock reduction needed here
+  //
+  // If tests need realistic stock reduction, they should:
+  // 1. Use real product IDs (not dummy '507f1f77bcf86cd799439011')
+  // 2. Manually reduce stock before calling createTestOrder, or
+  // 3. Call the API endpoint instead of the service directly
 
-  // Use OrderService
+  // Use OrderService - this only creates the order record, does NOT touch product stock
   const order = await orderService.createOrder(finalOrderData);
   return order;
 };
@@ -181,19 +182,20 @@ const getAuthToken = (user) => {
 };
 
 // Helper to clean up database (supports both MongoDB & DynamoDB)
+// ✅ SAFETY: Only deletes items with TEST_ prefix - protects production data
 const cleanupDatabase = async () => {
   const phase = process.env.MIGRATION_PHASE || 'DYNAMODB_ONLY';
 
   if (phase.includes('MONGO')) {
-    // Clean MongoDB
-    await User.deleteMany({});
-    await Product.deleteMany({});
-    await Order.deleteMany({});
-    await Category.deleteMany({});
+    // Clean MongoDB - only test data
+    await User.deleteMany({ email: { $regex: /^TEST_/ } });
+    await Product.deleteMany({ name: { $regex: /^TEST_/ } });
+    await Order.deleteMany({ 'shippingInfo.address': { $regex: /^TEST_|^123 Test/ } });
+    await Category.deleteMany({ name: { $regex: /^TEST_/ } });
   }
 
   if (phase.includes('DYNAMO')) {
-    // ✅ IMPROVED: Clean DynamoDB - scan ALL pages and delete all items
+    // ✅ SAFE CLEANUP: Only delete items with TEST_ marker
     const AWS = require('aws-sdk');
     const dynamodb = new AWS.DynamoDB.DocumentClient({
       region: process.env.AWS_REGION || 'ap-southeast-1',
@@ -208,7 +210,6 @@ const cleanupDatabase = async () => {
     try {
       let lastEvaluatedKey = null;
 
-      // ✅ Scan ALL pages (DynamoDB returns max 1MB per scan)
       do {
         const scanParams = {
           TableName: tableName,
@@ -217,28 +218,50 @@ const cleanupDatabase = async () => {
 
         const scanResult = await dynamodb.scan(scanParams).promise();
 
-        // Delete items from this page
         if (scanResult.Items && scanResult.Items.length > 0) {
-          const deletePromises = scanResult.Items.map(item => {
-            return dynamodb.delete({
-              TableName: tableName,
-              Key: {
-                PK: item.PK,
-                SK: item.SK
-              }
-            }).promise();
+          // ✅ FILTER: Only delete items that are test data
+          const testItems = scanResult.Items.filter(item => {
+            // Check various fields for TEST_ prefix
+            const isTestUser = item.email && item.email.startsWith('TEST_');
+            const isTestProduct = item.name && item.name.startsWith('TEST_');
+            const isTestCategory = item.name && item.name.startsWith('TEST_');
+            const isTestOrder = item.EntityType === 'Order' &&
+              (item.shippingInfo?.address?.includes('Test') ||
+                item.userId?.startsWith && item.userId.includes('TEST_'));
+            const isTestOrderItem = item.EntityType === 'OrderItem' &&
+              item.name && item.name.startsWith('TEST_');
+
+            // Also check if PK contains test user ID (orders belong to test users)
+            const belongsToTestUser = item.GSI1PK && item.GSI1PK.includes('USER#') &&
+              scanResult.Items.some(u => u.email?.startsWith('TEST_') &&
+                item.GSI1PK.includes(u.userId || u.id));
+
+            return isTestUser || isTestProduct || isTestCategory ||
+              isTestOrder || isTestOrderItem || belongsToTestUser;
           });
 
-          await Promise.all(deletePromises);
-          totalDeleted += scanResult.Items.length;
+          if (testItems.length > 0) {
+            const deletePromises = testItems.map(item => {
+              return dynamodb.delete({
+                TableName: tableName,
+                Key: {
+                  PK: item.PK,
+                  SK: item.SK
+                }
+              }).promise();
+            });
+
+            await Promise.all(deletePromises);
+            totalDeleted += testItems.length;
+          }
         }
 
         lastEvaluatedKey = scanResult.LastEvaluatedKey;
 
-      } while (lastEvaluatedKey); // Continue until no more items
+      } while (lastEvaluatedKey);
 
       if (totalDeleted > 0) {
-        console.log(`🗑️  Cleaned ${totalDeleted} items from DynamoDB`);
+        console.log(`🗑️  Cleaned ${totalDeleted} TEST items from DynamoDB (production data safe)`);
       }
     } catch (error) {
       console.log('⚠️  DynamoDB cleanup error:', error.message);

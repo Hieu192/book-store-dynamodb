@@ -13,6 +13,7 @@ describe('Auth Middleware Unit Tests', () => {
   beforeEach(() => {
     req = {
       cookies: {},
+      headers: {}, // ✅ Add headers to avoid TypeError when middleware checks req.headers.authorization
       user: null
     };
     res = {

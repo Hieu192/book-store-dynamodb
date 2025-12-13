@@ -1,3 +1,4 @@
+// Note: File name has typo - should be elasticlunr but is elasticlurn
 const Search = require('../../../utils/elasticlurn');
 
 describe('Elasticlunr Search Unit Tests', () => {
@@ -30,7 +31,7 @@ describe('Elasticlunr Search Unit Tests', () => {
 
   it('should search by product name', () => {
     const results = Search('Harry Potter', mockProducts);
-    
+
     expect(results).toBeDefined();
     expect(Array.isArray(results)).toBe(true);
     expect(results.length).toBeGreaterThan(0);
@@ -39,7 +40,7 @@ describe('Elasticlunr Search Unit Tests', () => {
 
   it('should search by description', () => {
     const results = Search('magical', mockProducts);
-    
+
     expect(results).toBeDefined();
     expect(results.length).toBeGreaterThan(0);
     expect(results[0].ref).toBe('1');
@@ -47,7 +48,7 @@ describe('Elasticlunr Search Unit Tests', () => {
 
   it('should search by category', () => {
     const results = Search('Programming', mockProducts);
-    
+
     expect(results).toBeDefined();
     expect(results.length).toBeGreaterThanOrEqual(2);
     const refs = results.map(r => r.ref);
@@ -57,7 +58,7 @@ describe('Elasticlunr Search Unit Tests', () => {
 
   it('should return empty array for no matches', () => {
     const results = Search('nonexistent keyword xyz', mockProducts);
-    
+
     expect(results).toBeDefined();
     expect(Array.isArray(results)).toBe(true);
     expect(results.length).toBe(0);
@@ -65,14 +66,14 @@ describe('Elasticlunr Search Unit Tests', () => {
 
   it('should handle empty keyword', () => {
     const results = Search('', mockProducts);
-    
+
     expect(results).toBeDefined();
     expect(Array.isArray(results)).toBe(true);
   });
 
   it('should handle empty data array', () => {
     const results = Search('test', []);
-    
+
     expect(results).toBeDefined();
     expect(Array.isArray(results)).toBe(true);
     expect(results.length).toBe(0);
@@ -81,7 +82,7 @@ describe('Elasticlunr Search Unit Tests', () => {
   it('should be case insensitive', () => {
     const results1 = Search('HARRY', mockProducts);
     const results2 = Search('harry', mockProducts);
-    
+
     expect(results1.length).toBe(results2.length);
     if (results1.length > 0) {
       expect(results1[0].ref).toBe(results2[0].ref);
@@ -90,7 +91,7 @@ describe('Elasticlunr Search Unit Tests', () => {
 
   it('should return results with score', () => {
     const results = Search('JavaScript', mockProducts);
-    
+
     expect(results.length).toBeGreaterThan(0);
     expect(results[0]).toHaveProperty('ref');
     expect(results[0]).toHaveProperty('score');
@@ -99,14 +100,14 @@ describe('Elasticlunr Search Unit Tests', () => {
 
   it('should prioritize name matches over description', () => {
     const results = Search('JavaScript', mockProducts);
-    
+
     // Product with "JavaScript" in name should rank higher
     expect(results[0].ref).toBe('3');
   });
 
   it('should handle partial word matches', () => {
     const results = Search('Java', mockProducts);
-    
+
     // Elasticlunr may not match partial words depending on configuration
     // This test is optional and depends on the search implementation
     if (results.length > 0) {

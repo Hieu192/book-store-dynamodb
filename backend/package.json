@@ -10,7 +10,7 @@
     "seeder": "node utils/seeder.js",
     "test": "jest --coverage --detectOpenHandles --forceExit",
     "test:watch": "jest --watch",
-    "test:integration": "jest --testPathPattern=tests/integration",
+    "test:integration": "jest --testPathPattern=tests/integration --runInBand",
     "test:unit": "jest --testPathPattern=tests/unit",
     "test:performance": "jest --testPathPattern=tests/performance --detectOpenHandles --forceExit",
     "test:e2e": "jest --testPathPattern=tests/e2e --detectOpenHandles --forceExit --runInBand",
